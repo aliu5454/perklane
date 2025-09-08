@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f4f2ee;
+  --foreground: #605f5f;
+  --primary: #f6f7f8;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --breakpoint-xl: 75rem;
+}
+
+@utility container{
+  margin: 0 auto;
+}
+
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist), sans-serif;
+  font-size: 16px;
+  /*font-family: var(--font-geist-sans), sans-serif;*/
+}
+
+main{
+  letter-spacing: -.03em;
+  line-height: 1.4em;
+}
+
+h1, h2, h3, h4, h5, h6{
+  font-family: var(--font-albert), sans-serif;
+  line-height: 1.1em;
+  color: #000;
+}
+
+.font-albert{
+  font-family: var(--font-albert), sans-serif;
+}
+
+.navbar{
+  background-color: rgb(255, 255, 255);
+  height: auto;
+  order: -1000;
+  position: fixed;
+  padding: 8px 12px;
+  z-index: 10;
+  border-radius: 58px;
+  box-shadow: rgba(224, 215, 198, 0.5) 0 1px 20px 0;
+}
+.navbar-links .nav-link{
+  @apply text-base p-1;
+}
+.bg-container{
+  flex: none;
+  height: 69%;
+  left: calc(50.00000000000002% - 100% / 2);
+  order: -999;
+  width: 100%;
+  z-index: 0;
+  max-height: 1024px;
+}
+
+.stripe-left,
+.stripe-right{
+  align-items: center;
+  display: flex;
+  flex: none;
+  flex-direction: row;
+  height: 100%;
+  position: relative;
+  width: 35%;
+}
+
+
+.hero-section{
+  @apply flex flex-col gap-16;
+}
+.hero-section .hero-header{
+  @apply flex flex-col items-center gap-6;
+}
+.hero-section .hero-header h1{
+  @apply text-[36px] lg:text-[50px] lg:text-[56px] max-lg:w-[80%];
+  /*letter-spacing: -.05em;*/
+}
+
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 20s linear infinite;
+}
+
+.clients-logo ul li{
+  width: 168px;
+  aspect-ratio: 5.25 / 1;
+}
+
+.section-heading{
+  @apply text-[40px];
+}
+
+.footer-mail{
+  @apply text-[50px] xl:text-[56px] leading-[1.1em];
+  font-size: 56px;
+}
+.faq-item{
+  @apply bg-white/40 rounded-[20px] p-8 cursor-pointer transition;
+}
+.faq-item:hover{
+  box-shadow: #00000026 5px 8px 15px 0;
+}
+
+.contact-form input,
+.contact-form textarea{
+  @apply h-[44px] w-full rounded-[20px] bg-white/10 p-4 text-white placeholder-white/60 focus:outline-none;
+}
