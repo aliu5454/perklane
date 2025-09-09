@@ -13,13 +13,13 @@ export default function Navbar() {
         <nav className="navbar relative flex items-center max-lg:justify-between lg:gap-[56px] justify-between lg:w-[615px] left-[24px] right-[24px] top-[16px] lg:top-[24px] lg:left-1/2 lg:-translate-x-1/2">
             {/* Logo */}
             <div className="navbar-logo shrink-0">
-                <Link href="/" aria-label="Home">
+                <Link href="/" aria-label="Home" className="relative block w-[105px] sm:w-[120px] lg:w-[140px] h-10">
                     <Image
                         src="/logos/nav-logo.png"
                         alt="Company Logo"
-                        width={140}
-                        height={40}
+                        fill
                         priority
+                        className="object-contain"
                     />
                 </Link>
             </div>

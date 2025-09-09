@@ -39,10 +39,14 @@ const faqs: FAQ[] = [
 ];
 
 function Faqs() {
-    const [openIndex, setOpenIndex] = useState<number | null>(null);
+    const [openIndexes, setOpenIndexes] = useState<number[]>([]);
 
     const toggleFAQ = (index: number) => {
-        setOpenIndex(openIndex === index ? null : index);
+        setOpenIndexes((prev) =>
+            prev.includes(index)
+                ? prev.filter((i) => i !== index)
+                : [...prev, index]
+        );
     };
 
     return (
@@ -51,37 +55,46 @@ function Faqs() {
                 <div className="p-20 max-lg:px-6">
                     <div className="flex flex-col xl:flex-row xl:justify-between max-xl:gap-10">
                         <div className="flex flex-col items-start gap-5 w-full xl:w-[343px] max-w-[600px] flex-none">
-                            <h2 className="section-heading">
-                                Your questions, answered
-                            </h2>
+                            <h2 className="section-heading">Your questions, answered</h2>
                             <p>
-                                Get quick answers to the most common questions about our platform and
-                                services.
+                                Get quick answers to the most common questions about our
+                                platform and services.
                             </p>
                             <Button label="Contact us"/>
                         </div>
 
                         <div className="w-full xl:w-[58%] flex flex-col gap-2 bg-[#efece6] rounded-3xl p-2">
-                            {faqs.map((faq, index) => (
-                                <div
-                                    key={index}
-                                    className="faq-item"
-                                    style={{boxShadow: openIndex === index ? '#00000026 5px 8px 15px 0' : ''}}
-                                    onClick={() => toggleFAQ(index)}
-                                >
-                                    <div className="flex justify-between items-center">
-                                      <h3 className="text-lg lg:text-xl pr-3">{faq.question}</h3>
-                                      <div className="shrink-0">
-                                          <div className={`w-5 h-5 text-[#aeaeae] transition transition-duration-500 ${openIndex === index ? 'rotate-225' : ''}`}>
-                                              <Plus />
-                                          </div>
-                                      </div>
+                            {faqs.map((faq, index) => {
+                                const isOpen = openIndexes.includes(index);
+                                return (
+                                    <div
+                                        key={index}
+                                        className="faq-item"
+                                        style={{
+                                            boxShadow: isOpen ? "#00000026 5px 8px 15px 0" : "",
+                                        }}
+                                        onClick={() => toggleFAQ(index)}
+                                    >
+                                        <div className="flex justify-between items-center">
+                                            <h3 className="text-lg lg:text-xl pr-3">
+                                                {faq.question}
+                                            </h3>
+                                            <div className="shrink-0">
+                                                <div
+                                                    className={`w-5 h-5 text-[#aeaeae] transition-transform duration-500 ${
+                                                        isOpen ? "rotate-225" : ""
+                                                    }`}
+                                                >
+                                                    <Plus/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {isOpen && (
+                                            <p className="mt-4 text-gray-600">{faq.answer}</p>
+                                        )}
                                     </div>
-                                    {openIndex === index && (
-                                        <p className="mt-4 text-gray-600">{faq.answer}</p>
-                                    )}
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
                 </div>

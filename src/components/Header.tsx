@@ -6,6 +6,7 @@ import Button from "@/components/Button";
 import ClientMarquee from "@/components/ClientMarquee";
 import CTAButton from "@/components/CTAButton";
 import HeroWidgets from "@/components/HeroWidgets";
+import Image from "next/image";
 
 function Header() {
     return (
@@ -34,7 +35,13 @@ function Header() {
                             </div>
 
                             <div className="relative w-full lg:max-w-[600px] lg:w-[75%] xl:w-[49%] h-[270px] lg:h-[400px] xl:h-[416px] w-[75%] max-xl:mx-auto">
-                                <HeroWidgets/>
+                                <Image
+                                    src="/images/herographictest.png"
+                                    alt="Hero Graphic"
+                                    fill
+                                    className="object-contain"
+                                />
+                                {/*<HeroWidgets/>*/}
                             </div>
                         </div>
                     </div>
@@ -44,8 +51,6 @@ function Header() {
                     <ClientMarquee/>
                 </div>
             </header>
-
-
         </>
     );
 }
