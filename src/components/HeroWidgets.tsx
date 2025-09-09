@@ -43,7 +43,7 @@ function HeroWidgets() {
                     <button className="flex items-center gap-1 text-[10px] lg:text-sm text-[#1A1A1A] leading-[1.3em]">
                         Sort by Newest
                         <div className="w-3 h-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><polyline points="208 96 128 176 48 96" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><polyline points="208 96 128 176 48 96" fill="none" stroke="currentColor" strokeLinecap="round" stroke-linejoin="round" stroke-width="16"/></svg>
                         </div>
                     </button>
                 </div>
@@ -80,10 +80,10 @@ function HeroWidgets() {
                                                 <rect width="256" height="256" fill="none"/>
                                                 <path
                                                     d="M92.69,216H48a8,8,0,0,1-8-8V163.31a8,8,0,0,1,2.34-5.65L165.66,34.34a8,8,0,0,1,11.31,0L221.66,79a8,8,0,0,1,0,11.31L98.34,213.66A8,8,0,0,1,92.69,216Z"
-                                                    fill="none" stroke="currentColor" stroke-linecap="round"
+                                                    fill="none" stroke="currentColor" strokeLinecap="round"
                                                     stroke-linejoin="round" stroke-width="16"/>
                                                 <line x1="136" y1="64" x2="192" y2="120" fill="none"
-                                                      stroke="currentColor" stroke-linecap="round"
+                                                      stroke="currentColor" strokeLinecap="round"
                                                       stroke-linejoin="round" stroke-width="16"/>
                                             </svg>
                                         </div>
@@ -94,7 +94,7 @@ function HeroWidgets() {
                                                 <rect width="256" height="256" fill="none"/>
                                                 <path
                                                     d="M128,189.09l54.72,33.65a8.4,8.4,0,0,0,12.52-9.17l-14.88-62.79,48.7-42A8.46,8.46,0,0,0,224.27,94L160.36,88.8,135.74,29.2a8.36,8.36,0,0,0-15.48,0L95.64,88.8,31.73,94a8.46,8.46,0,0,0-4.79,14.83l48.7,42L60.76,213.57a8.4,8.4,0,0,0,12.52,9.17Z"
-                                                    fill="none" stroke="currentColor" stroke-linecap="round"
+                                                    fill="none" stroke="currentColor" strokeLinecap="round"
                                                     stroke-linejoin="round" stroke-width="16"/>
                                             </svg>
                                         </div>
@@ -105,7 +105,7 @@ function HeroWidgets() {
                                                 <rect width="256" height="256" fill="none"/>
                                                 <path
                                                     d="M132,216H48a8,8,0,0,1-8-8V124a92,92,0,0,1,92-92h0a92,92,0,0,1,92,92h0A92,92,0,0,1,132,216Z"
-                                                    fill="none" stroke="currentColor" stroke-linecap="round"
+                                                    fill="none" stroke="currentColor" strokeLinecap="round"
                                                     stroke-linejoin="round" stroke-width="16"/>
                                                 <circle cx="132" cy="128" r="12"/>
                                                 <circle cx="88" cy="128" r="12"/>
@@ -143,11 +143,11 @@ function HeroWidgets() {
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
                                 <rect width="256" height="256" fill="none"/>
                                 <circle cx="128" cy="128" r="96" fill="none" stroke="currentColor"
-                                        stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+                                        strokeLinecap="round" stroke-linejoin="round" stroke-width="16"/>
                                 <line x1="88" y1="128" x2="168" y2="128" fill="none" stroke="currentColor"
-                                      stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+                                      strokeLinecap="round" stroke-linejoin="round" stroke-width="16"/>
                                 <polyline points="136 96 168 128 136 160" fill="none" stroke="currentColor"
-                                          stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+                                          strokeLinecap="round" stroke-linejoin="round" stroke-width="16"/>
                             </svg>
                         </div>
                     </button>

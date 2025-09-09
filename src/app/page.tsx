@@ -1,12 +1,12 @@
 'use client'
-import Navbar from "@/components/layout/NavBar";
-import Header from "@/components/Header";
-import Process from "@/components/Process";
-import Features from "@/components/Features";
-import Faqs from "@/components/Faqs";
-import Footer from "@/components/layout/Footer";
 import CTA from "@/components/CTA";
+import Faqs from "@/components/Faqs";
+import Features from "@/components/Features";
+import Header from "@/components/Header";
 import BGTexture from "@/components/layout/BGTexture";
+import Footer from "@/components/layout/Footer";
+import Navbar from "@/components/layout/NavBar";
+import Process from "@/components/Process";
 
 
 export default function Home() {

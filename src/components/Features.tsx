@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useState } from "react";
+
 import { ChartLine, Laptop, Stack, UserList } from "@/utils/icons";
 
 function Features() {

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
-import { geist, albert } from "@/utils/fonts"
+
 import "./globals.css";
+
+import { albert,geist } from "@/utils/fonts"
 
 export const metadata: Metadata = {
   title: "Perklane",

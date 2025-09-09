@@ -1,6 +1,7 @@
 'use client';
 
 import Link from "next/link";
+
 import {ArrowRight} from "@/utils/icons";
 
 export default function CTAButton({ label = 'Contact us', isYellow = false } :{ label?: string, isYellow?: boolean }) {

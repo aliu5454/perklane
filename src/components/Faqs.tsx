@@ -1,7 +1,8 @@
 import React from 'react';
-import Button from "@/components/Button";
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+
+import Button from "@/components/Button";
+
 import {Plus} from "@/utils/icons";
 
 type FAQ = {

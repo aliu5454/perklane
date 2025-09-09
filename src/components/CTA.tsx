@@ -37,9 +37,9 @@ export default function CTA() {
 
                 {/* Content */}
                 <div className="container mx-auto max-w-[1200px]">
-                    <div className="relative z-[2] py-16 px-6 lg:py-20 lg:px-11 xl:px-20 xl:py-16 flex max-xl:flex-col max-xl:gap-10 max-lg:items-center justify-between text-white">
+                    <div className="relative z-[2] py-16 px-6 lg:py-20 lg:px-11 xl:px-[60px] xl:py-20 flex max-xl:flex-col max-xl:gap-10 max-lg:items-center justify-between text-white">
                         {/* Left Info */}
-                        <div className="flex flex-col justify-between max-lg:max-w-[600px] max-lg:w-full">
+                        <div className="flex flex-col justify-between max-lg:max-w-[600px] max-lg:w-full xl:w-[33%]">
                             <div className="flex flex-col gap-5">
                                 <h2 className="!text-white section-heading">Start your journey</h2>
                                 <p className="text-white/80 text-lg">
@@ -117,7 +117,7 @@ export default function CTA() {
                                     name="message"
                                     placeholder="Enter your message"
                                     required
-                                    className="min-h-[120px] resize-none"
+                                    className="min-h-[120px]"
                                 />
                             </div>
 

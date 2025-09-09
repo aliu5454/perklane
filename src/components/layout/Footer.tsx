@@ -47,17 +47,17 @@ export default function Footer() {
                                         </Link>
                                     </li>
                                     <li>
-                                        <Link href="/about" className="text-black p-1">
+                                        <Link href="/" className="text-black p-1">
                                             About
                                         </Link>
                                     </li>
                                     <li>
-                                        <Link href="/#pricing" className="text-black p-1">
+                                        <Link href="/" className="text-black p-1">
                                             Pricing
                                         </Link>
                                     </li>
                                     <li>
-                                        <Link href="/case-studies" className="text-black p-1">
+                                        <Link href="/" className="text-black p-1">
                                             Case Studies
                                         </Link>
                                     </li>
@@ -68,7 +68,7 @@ export default function Footer() {
                         <div className="flex max-lg:flex-col max-lg:gap-8 lg:items-end lg:justify-between">
                             {/* Socials */}
                             <div className="flex flex-col gap-5">
-                                <div className="flex gap-2 lg:gap-3 text-black">
+                                <div className="flex gap-2 text-black">
                                     <a
                                         href="https://x.com"
                                         target="_blank"
@@ -88,7 +88,7 @@ export default function Footer() {
                                     >
                                         <span className="sr-only">Instagram</span>
                                         <div className="w-5 h-5">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><circle cx="128" cy="128" r="40" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="16"/><rect x="32" y="32" width="192" height="192" rx="48" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><circle cx="180" cy="76" r="12"/></svg>                                        </div>
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><circle cx="128" cy="128" r="40" fill="none" stroke="currentColor" strokeMiterlimit="10" stroke-width="16"/><rect x="32" y="32" width="192" height="192" rx="48" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><circle cx="180" cy="76" r="12"/></svg>                                        </div>
                                     </a>
                                     <a
                                         href="https://linkedin.com"
