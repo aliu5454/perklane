@@ -9,7 +9,7 @@ const logos = [
 
 export default function ClientMarquee() {
     return (
-        <div className="container max-w-[1200px] mx-auto">
+        <div className="container max-w-[1040px] mx-auto max-md:pt-6">
             <div className="clients-logo flex gap-8 overflow-hidden relative w-full"
                  style={{ maskImage: "linear-gradient(to right, rgba(0, 0, 0, 0) 0%, rgb(0, 0, 0) 12.5%, rgb(0, 0, 0) 87.5%, rgba(0, 0, 0, 0) 100%)" }}
             >
@@ -19,7 +19,7 @@ export default function ClientMarquee() {
                             <img
                                 src={logo}
                                 alt={`Brand ${idx + 1}`}
-                                className="h-16 w-auto object-contain"
+                                className="h-8 lg:h-16 w-auto object-contain"
                             />
                         </li>
                     ))}

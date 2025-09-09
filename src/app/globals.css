@@ -34,6 +34,7 @@ main{
 h1, h2, h3, h4, h5, h6{
   font-family: var(--font-albert), sans-serif;
   line-height: 1.1em;
+  letter-spacing: -.05em;
   color: #000;
 }
 
@@ -83,8 +84,7 @@ h1, h2, h3, h4, h5, h6{
   @apply flex flex-col items-center gap-6;
 }
 .hero-section .hero-header h1{
-  @apply text-[36px] lg:text-[50px] lg:text-[56px] max-lg:w-[80%];
-  /*letter-spacing: -.05em;*/
+  @apply text-[36px] lg:text-[50px] xl:text-[56px] max-md:w-full max-lg:w-[80%];
 }
 
 
@@ -107,15 +107,14 @@ h1, h2, h3, h4, h5, h6{
 }
 
 .section-heading{
-  @apply text-[40px];
+  @apply text-[30px] lg:text-[40px];
 }
 
 .footer-mail{
-  @apply text-[50px] xl:text-[56px] leading-[1.1em];
-  font-size: 56px;
+  @apply text-[36px] lg:text-[50px] xl:text-[56px] leading-[1.1em];
 }
 .faq-item{
-  @apply bg-white/40 rounded-[20px] p-8 cursor-pointer transition;
+  @apply bg-white/40 rounded-[20px] p-8 cursor-pointer transition-all;
 }
 .faq-item:hover{
   box-shadow: #00000026 5px 8px 15px 0;
