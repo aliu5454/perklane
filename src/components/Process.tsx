@@ -9,26 +9,26 @@ function Process() {
     return (
         <section>
             <div className="container max-w-[1200px]">
-                <div className="flex flex-col items-center p-20">
-                    <div className="relative w-[83%]">
+                <div className="flex flex-col items-center p-20 max-lg:px-6">
+                    <div className="relative w-full lg:w-[83%]">
                         <div
-                            className="relative h-[480px] w-full flex justify-start items-start border-2 border-white rounded-3xl overflow-hidden">
+                            className="relative h-[190px] sm:h-[264px] md:h-[504px] lg:h-[489px] w-full flex justify-start items-start border-2 border-white rounded-xl lg:rounded-3xl overflow-hidden">
                             <img
                                 src="https://framerusercontent.com/images/gU3HkY1CdAlVmjaQoAPwETeEos.png"
                                 alt="Dashboard UI"
-                                className="h-full w-full object-cover"
+                                className="h-full w-full object-cover object-top-left"
                             />
                         </div>
-                        <div className="absolute left-0 right-0 bottom-0 z-2 h-[90px]"
+                        <div className="absolute left-0 right-0 bottom-0 z-2 h-10 md:h-[90px]"
                              style={{ background: "linear-gradient(180deg,rgba(244,242,238,0) 0%,rgba(244,242,238,.99) 65%, rgb(244, 242, 238) 100%)"}}
                         />
                     </div>
 
 
-                    <div className="flex gap-2 rounded-3xl bg-[#f0ece6] p-2">
+                    <div className="flex flex-col xl:flex-row gap-2 rounded-3xl bg-[#f0ece6] p-2 w-full">
                         <div id="group"
-                             className={`grid gap-2 transition-all duration-500
-                              ${active === "03" ? "grid-cols-2 w-1/2" : "grid-cols-3 w-[75%]"}
+                             className={`flex flex-col xl:grid gap-2 max-lg:w-full transition-all duration-500
+                              ${active === "03" ? "xl:grid-cols-2 lg:w-full xl:w-1/2" : "xl:grid-cols-3 xl:w-[75%]"}
                             `}
                         >
                             <ProcessStep
@@ -38,7 +38,7 @@ function Process() {
                                 image="https://framerusercontent.com/images/hYqXfHm4SLL09lb8eXINkwGpaY.png"
                                 active={active === "01"}
                                 customClass={`transition-all duration-300 ${
-                                    active === "01" ? "col-span-2" : "col-span-1"
+                                    active === "01" ? "xl:col-span-2" : "xl:col-span-1"
                                 }`}
                                 onHover={() => setActive("01")}
                             />
@@ -49,7 +49,7 @@ function Process() {
                                 image="https://framerusercontent.com/images/lpUXQzvzgT4sfG94CeE4ukM15U.png"
                                 active={active === "02"}
                                 customClass={`transition-all duration-300 ${
-                                    active === "02" ? "col-span-2" : "col-span-1"
+                                    active === "02" ? "xl:col-span-2" : "xl:col-span-1"
                                 }`}
                                 onHover={() => setActive("02")}
                             />
@@ -84,14 +84,14 @@ function ProcessStep({ index, title, text, image, active = false, customClass, o
             className={customClass}
             onMouseEnter={onHover}
         >
-            <div className="bg-white rounded-[20px] h-[340px] p-6 shadow-[#0000001a_0_0_0_0] overflow-hidden transition-all"
+            <div className="bg-white rounded-[20px] xl:h-[340px] p-6 shadow-[#0000001a_0_0_0_0] overflow-hidden transition-all"
                  style={{transformOrigin: "50% 50% 0px"}}
             >
-                <div className="flex justify-between gap-4 h-full">
-                    <div className="flex-1 h-full flex flex-col justify-between shrink-0 w-[220px]">
+                <div className="flex flex-col xl:flex-row justify-between max-xl:items-center gap-6 xl:gap-4 h-full">
+                    <div className="flex-1 h-full flex flex-col max-xl:gap-6 justify-between shrink-0 w-full xl:w-[220px]">
                         <p className="text-lg text-[#AEAEAE]">{index}</p>
-                        <div className="flex flex-col gap-4">
-                            <h5 className="text-[26px]">
+                        <div className="flex flex-col gap-3 lg:gap-4">
+                            <h5 className="text-[20px] lg:text-[26px]">
                                 {title}
                             </h5>
                             <p className="">
@@ -101,7 +101,7 @@ function ProcessStep({ index, title, text, image, active = false, customClass, o
                     </div>
 
                     {active &&
-                        <div className="relative w-[220px] h-full rounded-2xl overflow-hidden origin-[50%_50%_0]">
+                        <div className="hidden xl:block relative w-[220px] h-full rounded-2xl overflow-hidden origin-[50%_50%_0]">
                             <div className="absolute inset-0">
                                 <img
                                     src="https://framerusercontent.com/images/42I2Ca6MGWWXgCMIC2PlpemkZ0.png?scale-down-to=512"
@@ -118,6 +118,23 @@ function ProcessStep({ index, title, text, image, active = false, customClass, o
                             </div>
                         </div>
                     }
+
+                    <div className="max-xl:block hidden relative w-full sm:w-[350px] max-xl:h-[271px] xl:w-[220px] xl:h-full rounded-2xl overflow-hidden origin-[50%_50%_0]">
+                        <div className="absolute inset-0">
+                            <img
+                                src="https://framerusercontent.com/images/42I2Ca6MGWWXgCMIC2PlpemkZ0.png?scale-down-to=512"
+                                alt="Step Bg"
+                                className="h-full w-full object-cover"
+                            />
+                            <div className="absolute top-[20px] left-[20px] h-[351px] w-[120%] rounded-2xl overflow-hidden border-2 border-white">
+                                <img
+                                    src={image}
+                                    alt="Step Image"
+                                    className="h-full w-full object-cover"
+                                />
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

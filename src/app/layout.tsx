@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
-import { geist, albert } from "@/utils/fonts"
+
 import "./globals.css";
+
+import { albert,geist } from "@/utils/fonts"
 
 export const metadata: Metadata = {
   title: "Perklane",
@@ -26,7 +28,7 @@ export default function RootLayout({
   return (
       <html lang="en">
       <body
-          className={`${geist.variable} ${albert.variable} antialiased`}
+          className={`${geist.variable} ${albert.variable}`}
       >
       {children}
       </body>

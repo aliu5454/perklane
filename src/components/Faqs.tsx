@@ -1,7 +1,9 @@
 import React from 'react';
-import Button from "@/components/Button";
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+
+import Button from "@/components/Button";
+
+import {Plus} from "@/utils/icons";
 
 type FAQ = {
     question: string;
@@ -46,7 +48,7 @@ function Faqs() {
     return (
         <section>
             <div className="container max-w-[1200px]">
-                <div className="p-20">
+                <div className="p-20 max-lg:px-6">
                     <div className="flex flex-col xl:flex-row xl:justify-between max-xl:gap-10">
                         <div className="flex flex-col items-start gap-5 w-full xl:w-[343px] max-w-[600px] flex-none">
                             <h2 className="section-heading">
@@ -68,12 +70,12 @@ function Faqs() {
                                     onClick={() => toggleFAQ(index)}
                                 >
                                     <div className="flex justify-between items-center">
-                                        <h3 className="text-xl">{faq.question}</h3>
-                                        <ChevronDown
-                                            className={`w-5 h-5 transition-transform ${
-                                                openIndex === index ? "rotate-180" : ""
-                                            }`}
-                                        />
+                                      <h3 className="text-lg lg:text-xl pr-3">{faq.question}</h3>
+                                      <div className="shrink-0">
+                                          <div className={`w-5 h-5 text-[#aeaeae] transition transition-duration-500 ${openIndex === index ? 'rotate-225' : ''}`}>
+                                              <Plus />
+                                          </div>
+                                      </div>
                                     </div>
                                     {openIndex === index && (
                                         <p className="mt-4 text-gray-600">{faq.answer}</p>
