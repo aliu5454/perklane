@@ -12,29 +12,54 @@ type FAQ = {
 
 const faqs: FAQ[] = [
     {
-        question: "What types of companies do you work with?",
+        question: "How does Perklane work?",
         answer:
-            "We partner with startups, small businesses, and growing teams across industries. Whether you're in tech, retail, or services, our solutions adapt to your needs.",
+            "Perklane lets customers scan a QR code, instantly add your branded loyalty card to Apple or Google Wallet, and automatically collect stamps or rewards with every purchase—no apps, no plastic cards.",
     },
     {
-        question: "How long does it take to see results?",
+        question: "Do my customers need to download an app?",
         answer:
-            "Most clients begin noticing improvements within the first few weeks. For deeper operational changes, we typically see lasting impact within 2 to 3 months.",
+            "No. Customers simply scan a QR code and their loyalty card appears directly in their phone's native wallet.",
     },
     {
-        question: "Can Grovia integrate with our existing tools?",
+        question: "How are rewards tracked?",
         answer:
-            "Yes. Grovia is built to work with a wide range of platforms including Slack, Notion, Google Workspace, and more.",
+            "Every visit or purchase is logged instantly and securely. No manual tracking, no paper cards—Perklane syncs with your checkout flow.",
     },
     {
-        question: "Do you offer one-time consultations or ongoing support?",
+        question: "Does Perklane integrate with my POS system?",
         answer:
-            "Both. You can engage us for one-time strategy sessions or ongoing advisory support depending on your goals and team needs.",
+            "Yes. Perklane works alongside most modern POS systems. Even if your POS isn't directly integrated, you can still log visits via QR scan in seconds.",
     },
     {
-        question: "What does onboarding look like?",
+        question: "How long does it take to get started?",
         answer:
-            "Our onboarding process is simple and collaborative. We start with a kickoff session, align on goals, and provide a tailored roadmap to guide the next steps.",
+            "You can launch in minutes. Just customize your card, display your QR code, and start rewarding customers right away.",
+    },
+    {
+        question: "Is it secure?",
+        answer:
+            "Absolutely. Perklane uses the same wallet infrastructure as Apple Pay and Google Wallet, ensuring bank-level encryption and data privacy.",
+    },
+    {
+        question: "How much does it cost?",
+        answer:
+            "Perklane is designed for small and medium businesses with flexible, affordable plans that scale with you. No hidden fees.",
+    },
+    {
+        question: "Can I customize the loyalty program?",
+        answer:
+            "Yes. You decide the reward structure (e.g., \"Buy 5, get 1 free\"), branding, and promotions. Your card looks and feels like part of your business.",
+    },
+    {
+        question: "What kind of insights will I get?",
+        answer:
+            "You'll see new vs. returning customers, redemption rates, and campaign performance, so you can double down on what works.",
+    },
+    {
+        question: "What happens if a customer changes their phone?",
+        answer:
+            "No problem—the loyalty card is tied to their wallet account. If they switch devices, their rewards come with them.",
     },
 ];
 
@@ -57,7 +82,7 @@ function Faqs() {
                         <div className="flex flex-col items-start gap-5 w-full xl:w-[343px] max-w-[600px] flex-none">
                             <h2 className="section-heading">Your questions, answered</h2>
                             <p>
-                                Get quick answers to the most common questions about our
+                                Get answers to the most common questions about our
                                 platform and services.
                             </p>
                             <Button label="Contact us"/>
@@ -69,7 +94,7 @@ function Faqs() {
                                 return (
                                     <div
                                         key={index}
-                                        className="faq-item"
+                                        className="faq-item cursor-pointer transition-all duration-300 ease-in-out"
                                         style={{
                                             boxShadow: isOpen ? "#00000026 5px 8px 15px 0" : "",
                                         }}
@@ -81,7 +106,7 @@ function Faqs() {
                                             </h3>
                                             <div className="shrink-0">
                                                 <div
-                                                    className={`w-5 h-5 text-[#aeaeae] transition-transform duration-500 ${
+                                                    className={`w-5 h-5 text-[#aeaeae] transition-transform duration-300 ease-in-out ${
                                                         isOpen ? "rotate-225" : ""
                                                     }`}
                                                 >
@@ -89,9 +114,15 @@ function Faqs() {
                                                 </div>
                                             </div>
                                         </div>
-                                        {isOpen && (
-                                            <p className="mt-4 text-gray-600">{faq.answer}</p>
-                                        )}
+                                        <div 
+                                            className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                                                isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+                                            }`}
+                                        >
+                                            <p className="mt-4 text-gray-600 transform transition-all duration-300 ease-in-out">
+                                                {faq.answer}
+                                            </p>
+                                        </div>
                                     </div>
                                 );
                             })}
