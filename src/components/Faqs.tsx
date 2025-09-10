@@ -14,52 +14,32 @@ const faqs: FAQ[] = [
     {
         question: "How does Perklane work?",
         answer:
-            "Perklane lets customers scan a QR code, instantly add your branded loyalty card to Apple or Google Wallet, and automatically collect stamps or rewards with every purchase—no apps, no plastic cards.",
+            "Customers scan your QR code, add your branded loyalty card to Apple or Google Wallet, and every visit or purchase is logged instantly. No apps to download, no plastic cards to carry—everything lives securely in their phone's native wallet.",
     },
     {
-        question: "Do my customers need to download an app?",
+        question: "Does it integrate with my checkout system?",
         answer:
-            "No. Customers simply scan a QR code and their loyalty card appears directly in their phone's native wallet.",
+            "Yes. Perklane works alongside most POS systems. If your POS isn't directly integrated, rewards can still be logged instantly via QR scan. Setup takes just minutes—customize your card, display your code, and start rewarding customers right away.",
     },
     {
-        question: "How are rewards tracked?",
+        question: "How customizable is the program?",
         answer:
-            "Every visit or purchase is logged instantly and securely. No manual tracking, no paper cards—Perklane syncs with your checkout flow.",
+            "You choose the reward structure (e.g., \"Buy 5, get 1 free\"), branding, and promotions. Your card looks and feels like part of your business, not a generic loyalty app.",
     },
     {
-        question: "Does Perklane integrate with my POS system?",
+        question: "What about security and customer data?",
         answer:
-            "Yes. Perklane works alongside most modern POS systems. Even if your POS isn't directly integrated, you can still log visits via QR scan in seconds.",
-    },
-    {
-        question: "How long does it take to get started?",
-        answer:
-            "You can launch in minutes. Just customize your card, display your QR code, and start rewarding customers right away.",
-    },
-    {
-        question: "Is it secure?",
-        answer:
-            "Absolutely. Perklane uses the same wallet infrastructure as Apple Pay and Google Wallet, ensuring bank-level encryption and data privacy.",
+            "Perklane uses the same wallet infrastructure as Apple Pay and Google Wallet with bank-level encryption. Customer cards and rewards are tied to their wallet account, so if they change phones, their rewards move with them.",
     },
     {
         question: "How much does it cost?",
         answer:
-            "Perklane is designed for small and medium businesses with flexible, affordable plans that scale with you. No hidden fees.",
-    },
-    {
-        question: "Can I customize the loyalty program?",
-        answer:
-            "Yes. You decide the reward structure (e.g., \"Buy 5, get 1 free\"), branding, and promotions. Your card looks and feels like part of your business.",
+            "Perklane is built for small and medium businesses with simple, affordable plans that scale with you. No hidden fees.",
     },
     {
         question: "What kind of insights will I get?",
         answer:
-            "You'll see new vs. returning customers, redemption rates, and campaign performance, so you can double down on what works.",
-    },
-    {
-        question: "What happens if a customer changes their phone?",
-        answer:
-            "No problem—the loyalty card is tied to their wallet account. If they switch devices, their rewards come with them.",
+            "Track new vs. returning customers, redemption rates, and campaign performance—all in one dashboard—so you know exactly what's working to bring customers back.",
     },
 ];
 
