@@ -8,7 +8,7 @@ export default function CTAButton({ label = 'Contact us', isYellow = false } :{ 
     return (
         <Link
             href="/#contact"
-            className={`flex items-center gap-3 rounded-4xl font-medium p-2 pl-4 ${isYellow ? 'bg-[#fef7af] text-black':'bg-black text-white'}`}
+            className={`flex items-center gap-3 rounded-4xl font-medium p-2 pl-4 text-nowrap ${isYellow ? 'bg-[#fef7af] text-black':'bg-black text-white'}`}
             style={{
                 boxShadow: "0px 5px 15px 0px rgba(0, 0, 0, 0.2)"
             }}
