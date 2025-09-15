@@ -34,3 +34,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# documentation files (except README.md)
+*.md
+!README.md
+
+# sql files
+*.sql
+
+service-account.json
