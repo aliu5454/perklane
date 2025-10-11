@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { X, ChevronDown, Upload, Download, CheckCircle, AlertCircle } from 'lucide-react'
 import GoogleWalletButton from './GoogleWalletButton'
+import AppleWalletButton from './AppleWalletButton'
 import { AnalyticsTracker } from '@/lib/analytics-tracker'
 
 interface CreatePassModalProps {
@@ -1598,13 +1599,22 @@ export default function CreatePassModal({ isOpen, onClose, onSuccess, editPass }
                   {successData?.qrCodeUrl ? (
                     <>
                       <div className="flex items-center gap-3">
-                        {successData?.passUrl && (
-                          <GoogleWalletButton
-                            passUrl={successData.passUrl}
-                            passId={successData.passId}
-                            size="md"
-                            variant="primary"
-                          />
+                        {successData?.passUrl && successData.passId && (
+                          <>
+                            <GoogleWalletButton
+                              passUrl={successData.passUrl}
+                              passId={successData.passId}
+                              size="md"
+                              variant="primary"
+                            />
+                            <AppleWalletButton
+                              passId={successData.passId}
+                              size="md"
+                              variant="outline"
+                              onError={(error) => console.error('Apple Wallet error:', error)}
+                              onSuccess={() => console.log('Apple Wallet pass downloaded')}
+                            />
+                          </>
                         )}
                         <a
                           href={successData.qrCodeUrl}
@@ -1693,13 +1703,22 @@ export default function CreatePassModal({ isOpen, onClose, onSuccess, editPass }
                         Customers can scan this QR code to add the pass directly to their mobile wallet
                       </p>
                       <div className="flex items-center justify-center gap-3 mt-4">
-                        {successData?.passUrl && (
-                          <GoogleWalletButton
-                            passUrl={successData.passUrl}
-                            passId={successData.passId}
-                            size="sm"
-                            variant="primary"
-                          />
+                        {successData?.passUrl && successData.passId && (
+                          <>
+                            <GoogleWalletButton
+                              passUrl={successData.passUrl}
+                              passId={successData.passId}
+                              size="sm"
+                              variant="primary"
+                            />
+                            <AppleWalletButton
+                              passId={successData.passId}
+                              size="sm"
+                              variant="outline"
+                              onError={(error) => console.error('Apple Wallet error:', error)}
+                              onSuccess={() => console.log('Apple Wallet pass downloaded')}
+                            />
+                          </>
                         )}
                         <a
                           href={successData.qrCodeUrl}

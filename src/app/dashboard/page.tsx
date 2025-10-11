@@ -13,6 +13,7 @@ import { DashboardContentSkeleton } from "@/components/DashboardSkeleton";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useToast } from "@/components/Toast";
 import GoogleWalletButton from "@/components/GoogleWalletButton";
+import AppleWalletButton from "@/components/AppleWalletButton";
 import { AnalyticsTracker } from "@/lib/analytics-tracker";
 import Link from 'next/link';
 import { Edit2, Trash2, QrCode, Plus, Activity, CreditCard, Users, Calendar, ExternalLink, MoreVertical, RefreshCw, AlertCircle, BarChart3 } from 'lucide-react';
@@ -500,13 +501,22 @@ export default function Dashboard() {
                         )}
                       </div>
                       <div className="flex items-center justify-between pt-2 border-t border-gray-200">
-                        <GoogleWalletButton
-                          passUrl={pass.pass_url}
-                          passId={pass.id}
-                          size="sm"
-                          variant="primary"
-                          onError={(error) => addToast(error, 'error')}
-                        />
+                        <div className="flex flex-col sm:flex-row gap-2 flex-1">
+                          <GoogleWalletButton
+                            passUrl={pass.pass_url}
+                            passId={pass.id}
+                            size="sm"
+                            variant="primary"
+                            onError={(error) => addToast(error, 'error')}
+                          />
+                          <AppleWalletButton
+                            passId={pass.id}
+                            size="sm"
+                            variant="outline"
+                            onError={(error) => addToast(error, 'error')}
+                            onSuccess={() => addToast('Pass downloaded! Open it to add to Apple Wallet', 'success')}
+                          />
+                        </div>
                         <p className="text-xs text-gray-500">
                           Pass ID: {pass.object_id.split('.').pop()?.substring(0, 8)}...
                         </p>

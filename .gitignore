@@ -42,4 +42,6 @@ next-env.d.ts
 # sql files
 *.sql
 
+.env
+
 service-account.json
