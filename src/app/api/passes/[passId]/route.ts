@@ -20,7 +20,7 @@ const supabase = createClient(
  */
 export async function GET(
   req: Request,
-  { params }: { params: { passId: string } }
+  { params }: { params: Promise<{ passId: string }> }
 ) {
   try {
     const { passId } = await params
