@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 import { albert,geist } from "@/utils/fonts"
+import AuthProvider from "@/components/AuthProvider"
+import { ToastProvider } from "@/components/Toast"
 
 export const metadata: Metadata = {
   title: "Perklane",
@@ -30,7 +32,11 @@ export default function RootLayout({
       <body
           className={`${geist.variable} ${albert.variable}`}
       >
-      {children}
+      <AuthProvider>
+        <ToastProvider>
+          {children}
+        </ToastProvider>
+      </AuthProvider>
       </body>
       </html>
   );
