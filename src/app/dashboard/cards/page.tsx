@@ -14,6 +14,7 @@ import { DashboardContentSkeleton } from "@/components/DashboardSkeleton";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useToast } from "@/components/Toast";
 import GoogleWalletButton from "@/components/GoogleWalletButton";
+import AppleWalletButton from "@/components/AppleWalletButton";
 import { AnalyticsTracker } from "@/lib/analytics-tracker";
 import { 
   ArrowLeft, Edit2, Trash2, QrCode, Plus, Calendar, 
@@ -609,16 +610,27 @@ export default function RecentPasses() {
                           </div>
                         )}
                         
-                        {/* Google Wallet Button */}
-                        <div className="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
-                          <GoogleWalletButton
-                            passUrl={pass.pass_url}
-                            passId={pass.id}
-                            size="md"
-                            variant="primary"
-                            onError={(error) => addToast(error, 'error')}
-                          />
-                          <div className="text-xs text-gray-500">
+                        {/* Wallet Buttons */}
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                            <GoogleWalletButton
+                              passUrl={pass.pass_url}
+                              passId={pass.id}
+                              size="md"
+                              variant="primary"
+                              className="flex-1"
+                              onError={(error) => addToast(error, 'error')}
+                            />
+                            <AppleWalletButton
+                              passId={pass.id}
+                              size="md"
+                              variant="outline"
+                              className="flex-1"
+                              onError={(error) => addToast(error, 'error')}
+                              onSuccess={() => addToast('Pass downloaded! Open it to add to Apple Wallet', 'success')}
+                            />
+                          </div>
+                          <div className="text-xs text-gray-500 mt-2 text-center">
                             <span>Pass ID: {pass.object_id.split('.').pop()?.substring(0, 12) || pass.id}</span>
                           </div>
                         </div>

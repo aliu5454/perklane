@@ -170,15 +170,8 @@ export async function POST(req: Request) {
     console.log('STEP 3: Generating Save link JWT with embedded class/object data...')
     const jwtResult = generateSaveJWT(objectId, passType, classPayload, objectPayload)
     
-    // STEP 4: Generate QR code
-    console.log('STEP 4: Generating QR code...')
-    // Generate optimized QR codes for Google Wallet scanning
-    const qrCodes = await generateGoogleWalletQRCodes(jwtResult.jwtToken, jwtResult.saveUrl)
-    const qrCodeUrl = qrCodes.recommended  // Use the recommended QR code format
-    const fallbackQrCodeUrl = qrCodes.fallback
-
-    // STEP 5: Store in database
-    console.log('STEP 5: Storing pass in database...')
+    // STEP 4: Store in database (QR code will be generated after we have the pass ID)
+    console.log('STEP 4: Storing pass in database...')
     
     // First, test if we can access the passes table
     try {
@@ -219,7 +212,7 @@ export async function POST(req: Request) {
 
     let passRecord = null;
     
-    // Try to insert the new pass
+    // Try to insert the new pass (without QR code URL initially)
     const { data: insertData, error: dbError } = await supabase
       .from('passes')
       .insert({
@@ -229,7 +222,7 @@ export async function POST(req: Request) {
         pass_data: passData,
         class_id: classId,
         object_id: objectId,
-        qr_code_url: qrCodeUrl,
+        qr_code_url: '', // Will be updated after pass ID is known
         pass_url: jwtResult.saveUrl,
         status: 'active',
         created_at: new Date().toISOString()
@@ -255,25 +248,13 @@ export async function POST(req: Request) {
             step1_class: { id: classId, status: 'existing (shared)' },
             step2_object: { id: objectId, status: 'created' },
             step3_jwt: { generated: true },
-            step4_qr: { url: qrCodeUrl, fallbackUrl: fallbackQrCodeUrl, status: 'generated' },
-            step5_database: { status: 'skipped_due_to_constraint' }
+            step4_database: { status: 'skipped_due_to_constraint' },
+            step5_qr: { status: 'not_generated' }
           },
           passUrl: jwtResult.saveUrl,
-          qrCodeUrl,
-          fallbackQrCodeUrl,
-          qrCodeInfo: {
-            primary: qrCodeUrl,
-            fallback: fallbackQrCodeUrl,
-            shortUrl: qrCodes.shortUrl,
-            originalUrl: qrCodes.originalUrl,
-            instructions: 'Scan the QR code with Google Wallet app or device camera. QR codes now use shortened URLs for better reliability.',
-            format: 'Shortened URL (optimized for QR code scanning)',
-            debug: {
-              urlShortening: 'Long Google Wallet URLs are automatically shortened using TinyURL for better QR code compatibility',
-              scanningImproved: 'Shortened URLs make QR codes much more reliable and faster to scan',
-              troubleshooting: 'If QR code still has issues, both primary and fallback options are available'
-            }
-          },
+          qrCodeUrl: null,
+          fallbackQrCodeUrl: null,
+          qrCodeInfo: null,
           passData,
           metadata
         });
@@ -291,6 +272,22 @@ export async function POST(req: Request) {
     // Success case
     console.log('✅ Pass successfully stored in database:', insertData?.id);
     passRecord = insertData;
+
+    // STEP 6: Generate QR code pointing to wallet selection page
+    console.log('STEP 6: Generating QR code for wallet selection page...')
+    const baseUrl = process.env.NEXTAUTH_URL || 'https://perklane.com'
+    const walletSelectionUrl = `${baseUrl}/pass/${passRecord.id}`
+    const selectionQrCodes = await generateWalletSelectionQRCode(walletSelectionUrl)
+    const qrCodeUrl = selectionQrCodes.recommended
+    const fallbackQrCodeUrl = selectionQrCodes.fallback
+
+    // Update the pass record with the correct QR code URL
+    await supabase
+      .from('passes')
+      .update({
+        qr_code_url: qrCodeUrl
+      })
+      .eq('id', passRecord.id)
 
     console.log('✅ Google Wallet pass creation workflow completed successfully!');
     
@@ -315,17 +312,17 @@ export async function POST(req: Request) {
           generated: true,
           description: 'Save link JWT token generated'
         },
-        step4_qr: { 
-          url: qrCodeUrl,
-          fallbackUrl: fallbackQrCodeUrl,
-          shortUrl: qrCodes.shortUrl,
-          format: 'Shortened URL (optimized for QR code scanning)',
-          description: 'QR code generated with shortened URL for reliable scanning - scan with Google Wallet app or camera'
-        },
-        step5_database: { 
+        step4_database: { 
           stored: true,
           recordId: passRecord?.id,
           description: 'Pass details stored in database successfully'
+        },
+        step5_qr: { 
+          url: qrCodeUrl,
+          fallbackUrl: fallbackQrCodeUrl,
+          shortUrl: selectionQrCodes.shortUrl,
+          format: 'QR code pointing to wallet selection page',
+          description: 'QR code redirects to page where users can choose Google Wallet or Apple Wallet'
         }
       },
       // Primary pass data
@@ -335,15 +332,11 @@ export async function POST(req: Request) {
       qrCodeInfo: {
         primary: qrCodeUrl,
         fallback: fallbackQrCodeUrl,
-        shortUrl: qrCodes.shortUrl,
-        originalUrl: qrCodes.originalUrl,
-        instructions: 'Scan the QR code with Google Wallet app or device camera. QR codes now use shortened URLs for better reliability.',
-        format: 'Shortened URL (optimized for QR code scanning)',
-        debug: {
-          urlShortening: 'Long Google Wallet URLs are automatically shortened using TinyURL for better QR code compatibility',
-          scanningImproved: 'Shortened URLs make QR codes much more reliable and faster to scan',
-          troubleshooting: 'If QR code still has issues, both primary and fallback options are available'
-        }
+        shortUrl: selectionQrCodes.shortUrl,
+        originalUrl: walletSelectionUrl,
+        instructions: 'Scan the QR code to choose between Google Wallet and Apple Wallet.',
+        format: 'Wallet selection page QR code',
+        selectionPageUrl: walletSelectionUrl
       },
       passData,
       metadata,
@@ -611,13 +604,54 @@ async function generateGoogleWalletQRCodes(jwtToken: string, saveUrl: string) {
   }
 }
 
+// Helper function to generate QR codes for wallet selection page
+async function generateWalletSelectionQRCode(selectionUrl: string) {
+  try {
+    console.log('🔍 Wallet Selection QR Code Generation:');
+    console.log('Selection URL:', selectionUrl);
+    console.log('Selection URL length:', selectionUrl.length);
+    
+    // Generate QR codes pointing to the wallet selection page
+    const primaryQR = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(selectionUrl)}&format=png&ecc=M&margin=5`
+    
+    // Secondary QR code with Google Charts API
+    const fallbackQR = `https://chart.googleapis.com/chart?chs=400x400&cht=qr&chl=${encodeURIComponent(selectionUrl)}&choe=UTF-8`
+    
+    console.log('✅ Wallet selection QR codes generated');
+    
+    return {
+      primary: primaryQR,
+      fallback: fallbackQR,
+      recommended: primaryQR,
+      shortUrl: selectionUrl,
+      originalUrl: selectionUrl
+    }
+  } catch (error) {
+    console.error('❌ Wallet selection QR code generation error:', error);
+    // Fallback to simple QR
+    const simpleQR = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(selectionUrl)}&format=png&ecc=L&margin=5`
+    return {
+      primary: simpleQR,
+      fallback: simpleQR,
+      recommended: simpleQR,
+      shortUrl: selectionUrl,
+      originalUrl: selectionUrl
+    }
+  }
+}
+
 // Helper function to format dates for Google Wallet
 function formatDateForGoogleWallet(dateString: string): string {
   if (!dateString) return dateString;
   
-  // If it's already in YYYY-MM-DD format, return as is
-  if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+  // If it's already in ISO 8601 format with time, return as is
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(dateString)) {
     return dateString;
+  }
+  
+  // If it's in YYYY-MM-DD format, add time component (end of day)
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+    return `${dateString}T23:59:59Z`; // End of day in UTC
   }
   
   // Try to parse and format the date
@@ -625,14 +659,16 @@ function formatDateForGoogleWallet(dateString: string): string {
     const date = new Date(dateString);
     if (isNaN(date.getTime())) {
       console.warn(`Invalid date format: ${dateString}`);
-      return dateString;
+      // Return a default far future date instead of invalid string
+      return new Date('2099-12-31T23:59:59Z').toISOString();
     }
     
-    // Return in YYYY-MM-DD format
-    return date.toISOString().split('T')[0];
+    // Return in ISO 8601 format with time
+    return date.toISOString();
   } catch (error) {
     console.warn(`Date parsing error for ${dateString}:`, error);
-    return dateString;
+    // Return a default far future date on error
+    return new Date('2099-12-31T23:59:59Z').toISOString();
   }
 }
 
@@ -1046,6 +1082,7 @@ function createOfferClass(classId: string, passData: any, smartTapConfig?: any) 
     title: passData.title,
     provider: passData.title,
     reviewStatus: 'UNDER_REVIEW',
+    redemptionChannel: 'BOTH',
     titleImage: logoUrl ? {
       sourceUri: {
         uri: logoUrl
@@ -1064,6 +1101,8 @@ function createOfferClass(classId: string, passData: any, smartTapConfig?: any) 
 
   return classPayload;
 }
+
+
 
 function createOfferObject(objectId: string, classId: string, passData: any) {
   // Build comprehensive text modules for offer
@@ -1185,13 +1224,13 @@ function createOfferObject(objectId: string, classId: string, passData: any) {
     
     if (passData.validFrom) {
       offerObject.validTimeInterval.start = {
-        date: passData.validFrom
+        date: formatDateForGoogleWallet(passData.validFrom)
       };
     }
     
     if (passData.expiryDate || passData.validUntil) {
       offerObject.validTimeInterval.end = {
-        date: passData.expiryDate || passData.validUntil
+        date: formatDateForGoogleWallet(passData.expiryDate || passData.validUntil)
       };
     }
   }
