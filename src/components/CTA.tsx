@@ -41,9 +41,9 @@ export default function CTA() {
                         {/* Left Info */}
                         <div className="flex flex-col justify-between max-lg:max-w-[600px] max-lg:w-full xl:w-[33%]">
                             <div className="flex flex-col gap-5">
-                                <h2 className="!text-white section-heading">Start your journey</h2>
+                                <h2 className="!text-white section-heading">Ready to boost customer loyalty?</h2>
                                 <p className="text-white/80 text-lg">
-                                    Let’s start building something great together.
+                                    Get started with Perklane today and create your first digital wallet pass in minutes.
                                 </p>
                             </div>
 

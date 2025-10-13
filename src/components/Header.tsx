@@ -19,11 +19,9 @@ function Header() {
                                 className="flex flex-col max-xl:items-center gap-8 xl:gap-[44px] max-xl:max-w-[600px] max-xl:w-full max-lg:mx-auto xl:w-[41%]">
                                     <div className="hero-section">
                                         <div className="hero-header text-center xl:text-start">
-                                            <h1>Strategy and growth for modern teams</h1>
+                                            <h1>Digital loyalty cards for Apple & Google Wallet</h1>
                                             <p className="text-lg text-[#605f5f] leading-[1.4em]">
-                                                Grovia partners with startups to streamline operations, elevate team
-                                                performance,
-                                                and build a foundation for lasting success.
+                                                Create branded loyalty cards, gift cards, and offers that live in your customers' mobile wallets. No app downloads, no plastic cards—just instant rewards.
                                             </p>
                                         </div>
                                     </div>
