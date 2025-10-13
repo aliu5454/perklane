@@ -93,7 +93,7 @@ export default function SignIn() {
               alt="Perklane"
               width={120}
               height={40}
-              className="mx-auto"
+              className="mx-auto mix-blend-multiply"
             />
           </Link>
           <h1 className="text-[36px] lg:text-[50px] font-albert mb-4">Welcome back</h1>
@@ -153,7 +153,7 @@ export default function SignIn() {
                 <span className="w-full border-t border-gray-300" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white/40 px-2 text-foreground">Or continue with</span>
+                <span className="bg-[#F8F7F5] px-2 text-foreground">Or continue with</span>
               </div>
             </div>
 
