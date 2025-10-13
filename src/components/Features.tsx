@@ -9,34 +9,34 @@ function Features() {
     const features = [
         {
             id: 1,
-            label: "Client portal",
+            label: "Apple & Google Wallet",
             icon: <Laptop />,
-            title: 'Centralized access for teams and clients',
-            text: 'Securely share progress, files, feedback, and timelines with stakeholders. Keep everyone on the same page without switching platforms.',
+            title: 'Native wallet integration',
+            text: 'Create passes that work seamlessly with Apple Wallet and Google Wallet. Your customers already have these apps—no downloads needed.',
             image: 'https://framerusercontent.com/images/FYu1jZWbjOddBtUuf68QAaN1Y.png?scale-down-to=1024'
         },
         {
             id: 2,
-            label: "KPI tracking",
+            label: "Analytics dashboard",
             icon: <ChartLine />,
-            title: 'Measure what matters most',
-            text: 'Monitor your team\'s goals and key business metrics in real time. Custom dashboards make insights easy to access and act on.',
+            title: 'Track every interaction',
+            text: 'See how many customers add your pass, when they view it, and redemption rates. Make data-driven decisions to grow your loyalty program.',
             image: 'https://framerusercontent.com/images/A1gzdWReJANo54cCWI3zX4uFwOQ.png'
         },
         {
             id: 3,
-            label: "Workflow automation",
+            label: "QR code generation",
             icon: <Stack />,
-            title: 'Automate repetitive tasks',
-            text: 'Save time with built-in automations that handle reminders, approvals, and task assignments — so your team can focus on high-impact work.',
+            title: 'Instant pass distribution',
+            text: 'Generate unique QR codes for each pass. Display them in-store, on receipts, or online. Customers scan once and they\'re enrolled.',
             image: 'https://framerusercontent.com/images/YAV2ruGFxCKxoKpmyegpIo6Dc9o.png?scale-down-to=512'
         },
         {
             id: 4,
-            label: "Team management",
+            label: "Custom branding",
             icon: <UserList />,
-            title: 'Built for growing teams',
-            text: 'Easily onboard new members, assign roles, and manage access. Keep your organization structured and scalable from day one.',
+            title: 'Make it yours',
+            text: 'Customize colors, logos, images, and fields. Create loyalty cards, gift cards, offers, and more that perfectly match your brand identity.',
             image: 'https://framerusercontent.com/images/k9JvsWmwaFu5EjRUms2dFdTEhAs.png'
         },
     ];
@@ -49,11 +49,9 @@ function Features() {
                     <div className="flex flex-col gap-10">
                         <div className="max-w-[610px] w-full mx-auto text-center">
                             <div className="flex flex-col items-center gap-5">
-                                <h2 className="section-heading">Built for high performance</h2>
+                                <h2 className="section-heading">Everything you need for customer loyalty</h2>
                                 <p className="text-lg">
-                                    Grovia gives your team everything it needs to stay aligned, track performance, and
-                                    scale
-                                    with confidence — all in one place.
+                                    Perklane gives you all the tools to create, distribute, and manage digital wallet passes that drive repeat business—all in one intuitive platform.
                                 </p>
                             </div>
                         </div>

@@ -33,8 +33,8 @@ function Process() {
                         >
                             <ProcessStep
                                 index="01"
-                                title="Easy Setup"
-                                text="Create your workspace and invite your team. Get everything ready in minutes."
+                                title="Create Your Pass"
+                                text="Design branded loyalty cards, gift cards, or offers in minutes. Customize colors, logos, and rewards to match your brand."
                                 image="https://framerusercontent.com/images/hYqXfHm4SLL09lb8eXINkwGpaY.png"
                                 active={active === "01"}
                                 customClass={`transition-all duration-300 ${
@@ -44,8 +44,8 @@ function Process() {
                             />
                             <ProcessStep
                                 index="02"
-                                title="Collaborate"
-                                text="Assign tasks and keep communication clear. Everyone stays aligned."
+                                title="Customers Add to Wallet"
+                                text="They scan your QR code and instantly add your card to Apple or Google Wallet. No app download required."
                                 image="https://framerusercontent.com/images/lpUXQzvzgT4sfG94CeE4ukM15U.png"
                                 active={active === "02"}
                                 customClass={`transition-all duration-300 ${
@@ -56,8 +56,8 @@ function Process() {
                         </div>
                         <ProcessStep
                             index="03"
-                            title="Track growth"
-                            text="Use dashboards to monitor progress, trends, and what matters most."
+                            title="Track & Reward"
+                            text="Monitor engagement, redemptions, and customer behavior through your dashboard. Watch your loyalty program grow."
                             image="https://framerusercontent.com/images/XoXQ8sesm7JX8MLXDCX4E5uw.png"
                             active={active === "03"}
                             customClass="transition-all duration-300 flex-1"
