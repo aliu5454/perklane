@@ -731,8 +731,9 @@ function validatePassData(passType: string, passData: any): { isValid: boolean; 
 
 /**
  * Creates a loyalty pass class with optional Smart Tap support
+ * ENHANCED: Supports all new customization fields including colors, images, and program details
  * @param classId Unique class identifier
- * @param passData Pass configuration data
+ * @param passData Pass configuration data with all customization options
  * @param smartTapConfig Optional Smart Tap configuration with merchantIds and redemptionValue
  */
 function createLoyaltyClass(classId: string, passData: any, smartTapConfig?: any) {
@@ -740,31 +741,69 @@ function createLoyaltyClass(classId: string, passData: any, smartTapConfig?: any
   const logoUrl = passData.logo?.startsWith('/') 
     ? `${process.env.NEXTAUTH_URL || 'https://perklane.com'}${passData.logo}`
     : passData.logo;
+  
+  // Convert background image to full URL
+  const backgroundImageUrl = passData.backgroundImage?.startsWith('/')
+    ? `${process.env.NEXTAUTH_URL || 'https://perklane.com'}${passData.backgroundImage}`
+    : passData.backgroundImage;
 
   const classPayload: any = {
     id: classId,
     issuerName: 'Perklane',
-    programName: passData.title,
+    programName: passData.programName || passData.title,
     reviewStatus: 'UNDER_REVIEW',
     programLogo: logoUrl ? {
       sourceUri: {
         uri: logoUrl
+      },
+      contentDescription: {
+        defaultValue: {
+          language: 'en-US',
+          value: 'Program Logo'
+        }
       }
     } : undefined,
-    hexBackgroundColor: passData.brandColor || '#000000',
+    // Custom colors
+    hexBackgroundColor: passData.backgroundColor || passData.brandColor || '#000000',
+    // Background image support (displayed as hero image)
+    heroImage: backgroundImageUrl ? {
+      sourceUri: {
+        uri: backgroundImageUrl
+      },
+      contentDescription: {
+        defaultValue: {
+          language: 'en-US',
+          value: 'Program Background'
+        }
+      }
+    } : undefined,
     locations: [],
     textModulesData: [
       {
-        header: 'Terms & Conditions',
-        body: passData.termsConditions || 'Standard terms apply'
+        header: 'Program Information',
+        body: passData.description || 'Earn rewards with every purchase',
+        id: 'program_info'
       }
     ],
     linksModuleData: passData.programWebsite ? {
       uris: [{
         uri: passData.programWebsite,
-        description: 'Program Website'
+        description: 'Program Website',
+        id: 'program_website'
       }]
-    } : undefined
+    } : undefined,
+    // General pass - one QR for all customers
+    allowMultipleUsersPerObject: false
+  }
+  
+  // Add customer service phone if provided
+  if (passData.customerServicePhone) {
+    if (!classPayload.textModulesData) classPayload.textModulesData = [];
+    classPayload.textModulesData.push({
+      header: 'Customer Service',
+      body: passData.customerServicePhone,
+      id: 'customer_service'
+    });
   }
 
   // Add Smart Tap configuration if provided
@@ -777,81 +816,86 @@ function createLoyaltyClass(classId: string, passData: any, smartTapConfig?: any
   return classPayload;
 }
 
+/**
+ * Creates a loyalty pass object with comprehensive customization
+ * ENHANCED: Supports general pass concept with tier system, points tracking, and rewards
+ * @param objectId Unique object identifier
+ * @param classId Reference to the loyalty class
+ * @param passData Complete pass configuration including all customization fields
+ */
 function createLoyaltyObject(objectId: string, classId: string, passData: any) {
   // Build comprehensive text modules for loyalty program
-  const textModules = [
-    {
-      header: 'Member Tier',
-      body: (passData.tier || 'Bronze').toUpperCase(),
-      id: 'member_tier'
-    }
-  ];
-
-  // Add membership details
-  if (passData.memberSince) {
+  const textModules = [];
+  
+  // Tier information with custom color badge
+  if (passData.tier) {
     textModules.push({
-      header: 'Member Since',
-      body: passData.memberSince,
-      id: 'member_since'
+      header: 'Current Tier',
+      body: (passData.tier || 'Bronze').toUpperCase(),
+      id: 'current_tier'
     });
   }
 
-  // Add points information
-  if (passData.pointsBalance || passData.pointsEarned || passData.pointsNeeded) {
-    let pointsInfo = [];
-    if (passData.pointsBalance) pointsInfo.push(`Current Balance: ${passData.pointsBalance} points`);
-    if (passData.pointsEarned) pointsInfo.push(`Lifetime Earned: ${passData.pointsEarned} points`);
-    if (passData.pointsNeeded) pointsInfo.push(`Next Reward: ${passData.pointsNeeded} points needed`);
+  // Points for reward information
+  if (passData.pointsForReward && passData.rewardDescription) {
+    textModules.push({
+      header: 'Reward Available',
+      body: `Earn ${passData.pointsForReward} ${passData.pointsLabel || 'points'} for ${passData.rewardDescription}`,
+      id: 'reward_info'
+    });
+  }
+
+  // Tier progress information
+  if (passData.nextTier && passData.pointsToNextTier) {
+    const currentPoints = parseInt(passData.pointsBalance) || 0;
+    const pointsNeeded = parseInt(passData.pointsToNextTier) || 0;
+    const progress = pointsNeeded > 0 ? Math.round((currentPoints / (currentPoints + pointsNeeded)) * 100) : 0;
     
     textModules.push({
-      header: 'Points Summary',
-      body: pointsInfo.join('\n'),
-      id: 'points_summary'
+      header: 'Next Tier Progress',
+      body: `${progress}% to ${passData.nextTier} tier. You need ${pointsNeeded} more ${passData.pointsLabel || 'points'} to reach the next level.`,
+      id: 'tier_progress'
     });
   }
 
-  // Add tier benefits
-  if (passData.benefits || passData.tierBenefits) {
+  // Issue date
+  if (passData.issueDate || passData.memberSince) {
+    const issueDate = new Date(passData.issueDate || passData.memberSince);
     textModules.push({
-      header: 'Member Benefits',
-      body: passData.benefits || passData.tierBenefits || 'Exclusive member discounts and rewards',
-      id: 'benefits'
+      header: 'Member Since',
+      body: issueDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+      id: 'issue_date'
     });
   }
 
-  // Add store locations or program details
-  if (passData.storeLocations || passData.participatingStores) {
+  // Nearest location information
+  if (passData.nearestLocation) {
+    let locationText = passData.nearestLocation;
+    if (passData.distanceToNearest) {
+      locationText += ` (${passData.distanceToNearest})`;
+    }
     textModules.push({
-      header: 'Valid At',
-      body: passData.storeLocations || passData.participatingStores || 'All participating locations',
-      id: 'locations'
+      header: 'Nearest Store',
+      body: locationText,
+      id: 'nearest_location'
     });
   }
 
-  // Add membership expiry
-  if (passData.membershipExpiry || passData.expiryDate) {
+  // Program description
+  if (passData.description) {
     textModules.push({
-      header: 'Membership Valid Until',
-      body: passData.membershipExpiry || passData.expiryDate,
-      id: 'expiry'
+      header: 'About This Program',
+      body: passData.description,
+      id: 'program_description'
     });
   }
 
-  // Add contact information
-  if (passData.customerService || passData.phone) {
+  // Contact information
+  if (passData.customerServicePhone) {
     textModules.push({
       header: 'Customer Service',
-      body: passData.customerService || passData.phone || 'Contact support for assistance',
+      body: passData.customerServicePhone,
       id: 'customer_service'
-    });
-  }
-
-  // Add program terms
-  if (passData.programTerms || passData.terms) {
-    textModules.push({
-      header: 'Program Terms',
-      body: passData.programTerms || passData.terms || 'Points subject to program terms and conditions',
-      id: 'terms'
     });
   }
 
@@ -860,39 +904,48 @@ function createLoyaltyObject(objectId: string, classId: string, passData: any) {
     classId: classId,
     state: 'ACTIVE',
     loyaltyPoints: {
+      label: passData.pointsLabel || 'Points',
       balance: {
         int: parseInt(passData.pointsBalance) || 0
       }
     },
-    accountName: passData.memberName || passData.accountName || 'Valued Member',
-    accountId: passData.accountId || passData.memberNumber || `MEMBER${Date.now().toString().slice(-6)}`,
+    // General pass - no specific account name required
+    accountName: passData.programName || passData.title || 'Valued Member',
+    accountId: `MEMBER${Date.now().toString().slice(-8)}`,
     textModulesData: textModules
   };
 
   // Add barcode if provided
   if (passData.barcodeValue) {
     loyaltyObject.barcode = {
-      type: passData.barcodeType || 'CODE_128',
+      type: passData.barcodeType || 'QR_CODE',
       value: passData.barcodeValue,
-      alternateText: passData.barcodeAltText || passData.memberNumber || passData.accountId
+      alternateText: passData.barcodeAltText || passData.title
     };
   }
 
   // Add validity period if provided
-  if (passData.membershipExpiry || passData.validUntil) {
+  if (passData.expirationDate || passData.membershipExpiry) {
     loyaltyObject.validTimeInterval = {
       end: {
-        date: passData.membershipExpiry || passData.validUntil
+        date: passData.expirationDate || passData.membershipExpiry
       }
     };
+    
+    // Add start date if issue date is provided
+    if (passData.issueDate) {
+      loyaltyObject.validTimeInterval.start = {
+        date: passData.issueDate
+      };
+    }
   }
 
-  // Add secondary points if applicable (e.g., bonus points, tier points)
-  if (passData.bonusPoints || passData.tierPoints) {
+  // Add secondary points for tier tracking if next tier is configured
+  if (passData.nextTier && passData.pointsToNextTier) {
     loyaltyObject.secondaryLoyaltyPoints = {
-      label: passData.bonusPoints ? 'Bonus Points' : 'Tier Points',
+      label: `Progress to ${passData.nextTier}`,
       balance: {
-        int: parseInt(passData.bonusPoints || passData.tierPoints) || 0
+        int: parseInt(passData.pointsBalance) || 0
       }
     };
   }

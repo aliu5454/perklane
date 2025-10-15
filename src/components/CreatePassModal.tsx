@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { X, ChevronDown, Upload, Download, CheckCircle, AlertCircle } from 'lucide-react'
-import GoogleWalletButton from './GoogleWalletButton'
-import AppleWalletButton from './AppleWalletButton'
 import { AnalyticsTracker } from '@/lib/analytics-tracker'
 
 interface CreatePassModalProps {
@@ -28,6 +26,41 @@ interface PassTypeOption {
 }
 
 const passTypes: PassTypeOption[] = [
+  {
+    id: 'loyalty',
+    name: 'Loyalty Pass',
+    description: 'Reward frequent customers with points or stamps',
+    icon: '⭐'
+  }
+  // Other pass types hidden from UI but backend functionality maintained
+  // {
+  //   id: 'generic',
+  //   name: 'Generic Pass',
+  //   description: 'A basic pass for general use cases',
+  //   icon: '📄'
+  // },
+  // {
+  //   id: 'gift-card',
+  //   name: 'Gift Card',
+  //   description: 'Digital gift cards with monetary value',
+  //   icon: '🎁'
+  // },
+  // {
+  //   id: 'offer',
+  //   name: 'Offer Pass',
+  //   description: 'Special discounts and promotional offers',
+  //   icon: '🏷️'
+  // },
+  // {
+  //   id: 'smart-tap',
+  //   name: 'Smart Tap',
+  //   description: 'NFC-enabled passes for quick interactions',
+  //   icon: '📱'
+  // }
+]
+
+// All pass types for backend compatibility
+const allPassTypes: PassTypeOption[] = [
   {
     id: 'generic',
     name: 'Generic Pass',
@@ -80,16 +113,23 @@ function PassCardPreview({ passType, formData, imagePreview }: PassCardPreviewPr
   }
 
   const brandColor = formData.brandColor || '#000000'
+  const backgroundColor = formData.backgroundColor || '#FFFFFF'
+  const textColor = formData.textColor || '#000000'
   const title = formData.title || 'Your Pass Title'
-  const passTypeData = passTypes.find(p => p.id === passType)
+  const passTypeData = allPassTypes.find(p => p.id === passType)
+  
+  // For loyalty passes, use custom background if specified
+  const cardBackground = passType === 'loyalty' && backgroundColor !== '#FFFFFF'
+    ? backgroundColor
+    : `linear-gradient(135deg, ${brandColor}15 0%, ${brandColor}05 100%)`
   
   return (
     <div className="relative">
       {/* Card Container */}
       <div 
-        className="w-full bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200 transition-all duration-300"
+        className="w-full rounded-2xl shadow-lg overflow-hidden border border-gray-200 transition-all duration-300"
         style={{ 
-          background: `linear-gradient(135deg, ${brandColor}15 0%, ${brandColor}05 100%)`,
+          background: cardBackground,
           minHeight: '200px'
         }}
       >
@@ -112,15 +152,15 @@ function PassCardPreview({ passType, formData, imagePreview }: PassCardPreviewPr
                 </div>
               )}
               <div>
-                <h3 className="font-semibold text-gray-900 text-base leading-tight">
+                <h3 className="font-semibold text-base leading-tight" style={{ color: textColor }}>
                   {title}
                 </h3>
-                <p className="text-sm text-gray-500 capitalize">
+                <p className="text-sm capitalize" style={{ color: formData.labelColor || '#666666' }}>
                   {passTypeData?.name || 'Pass'}
                 </p>
               </div>
             </div>
-            <div className="text-xs text-gray-400 uppercase tracking-wide">
+            <div className="text-xs uppercase tracking-wide" style={{ color: formData.labelColor || '#999999' }}>
               {passType.replace('-', ' ')}
             </div>
           </div>
@@ -129,16 +169,16 @@ function PassCardPreview({ passType, formData, imagePreview }: PassCardPreviewPr
           {renderPassSpecificPreview(passType, formData, brandColor)}
         </div>
 
-        {/* Bottom Border with Brand Color */}
+        {/* Bottom Strip with Brand Color */}
         <div 
-          className="h-2"
+          className="h-1.5"
           style={{ backgroundColor: brandColor }}
         />
       </div>
 
       {/* Mobile Wallet Style Notch */}
       <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
-        <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
+        <div className="w-16 h-1 bg-gray-300 rounded-full shadow-sm"></div>
       </div>
     </div>
   )
@@ -169,29 +209,105 @@ function renderPassSpecificPreview(passType: PassType, formData: Record<string, 
       )
 
     case 'loyalty':
+      const pointsLabel = formData.pointsLabel || 'POINTS'
+      const tierColor = formData.tierColor || brandColor
+      const textColor = formData.textColor || '#000000'
+      const labelColor = formData.labelColor || '#666666'
+      const backgroundColor = formData.backgroundColor || '#FFFFFF'
+      
       return (
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-600">Points</span>
-            <span className="text-lg font-bold text-gray-900">
-              {formData.pointsBalance || '0'}
-            </span>
-          </div>
-          {formData.memberName && (
-            <div className="text-sm text-gray-700">
-              {formData.memberName}
-            </div>
-          )}
-          {formData.tier && (
-            <div className="flex items-center gap-2">
+        <div className="space-y-4">
+          {/* Header Section with Tier Badge */}
+          <div className="flex justify-between items-start">
+            {formData.programName && (
+              <div className="flex-1">
+                <p className="text-sm font-semibold" style={{ color: textColor }}>{formData.programName}</p>
+              </div>
+            )}
+            {formData.tier && (
               <div 
-                className="px-2 py-1 rounded-full text-xs font-medium text-white"
-                style={{ backgroundColor: brandColor }}
+                className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide text-white shadow-sm"
+                style={{ backgroundColor: tierColor }}
               >
-                {formData.tier.toUpperCase()}
+                {formData.tier}
+              </div>
+            )}
+          </div>
+
+          {/* Points Display */}
+          <div className="flex items-center justify-between py-4 border-t border-b border-gray-200">
+            <div className="text-center flex-1">
+              <span className="text-xs uppercase tracking-wide" style={{ color: labelColor }}>{pointsLabel}</span>
+              <p className="text-3xl font-bold mt-1" style={{ color: brandColor }}>
+                {formData.pointsBalance || '0'}
+              </p>
+              {formData.pointsForReward && (
+                <p className="text-xs mt-1" style={{ color: labelColor }}>
+                  {formData.pointsForReward} for {formData.rewardDescription || 'reward'}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Tier Progress */}
+          {formData.nextTier && formData.pointsToNextTier && (
+            <div className="py-3">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-xs uppercase tracking-wide" style={{ color: labelColor }}>
+                  NEXT TIER: {formData.nextTier}
+                </span>
+                <span className="text-xs font-semibold" style={{ color: textColor }}>
+                  {formData.pointsToNextTier} pts needed
+                </span>
+              </div>
+              <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div 
+                  className="h-full rounded-full transition-all"
+                  style={{ 
+                    width: `${Math.min(((parseInt(formData.pointsBalance) || 0) / (parseInt(formData.pointsToNextTier) || 1)) * 100, 100)}%`,
+                    backgroundColor: brandColor
+                  }}
+                />
               </div>
             </div>
           )}
+
+          {/* Additional Info Grid */}
+          <div className="grid grid-cols-2 gap-3 pt-2">
+            {formData.issueDate && (
+              <div>
+                <span className="text-xs uppercase tracking-wide block" style={{ color: labelColor }}>ISSUED</span>
+                <p className="text-xs font-medium mt-1" style={{ color: textColor }}>
+                  {new Date(formData.issueDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                </p>
+              </div>
+            )}
+            {formData.expirationDate && (
+              <div>
+                <span className="text-xs uppercase tracking-wide block" style={{ color: labelColor }}>EXPIRES</span>
+                <p className="text-xs font-medium mt-1" style={{ color: textColor }}>
+                  {new Date(formData.expirationDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                </p>
+              </div>
+            )}
+            {formData.nearestLocation && (
+              <div>
+                <span className="text-xs uppercase tracking-wide block" style={{ color: labelColor }}>NEAREST STORE</span>
+                <p className="text-xs font-medium mt-1" style={{ color: textColor }}>{formData.nearestLocation}</p>
+                {formData.distanceToNearest && (
+                  <p className="text-xs mt-0.5" style={{ color: labelColor }}>{formData.distanceToNearest}</p>
+                )}
+              </div>
+            )}
+            {formData.programWebsite && (
+              <div>
+                <span className="text-xs uppercase tracking-wide block" style={{ color: labelColor }}>WEBSITE</span>
+                <p className="text-xs font-medium mt-1 truncate" style={{ color: brandColor }}>
+                  {formData.programWebsite.replace('https://', '').replace('http://', '')}
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       )
 
@@ -259,7 +375,7 @@ function renderPassSpecificPreview(passType: PassType, formData: Record<string, 
           )}
           <div className="flex items-center justify-center">
             <div className="text-2xl">
-              {passTypes.find(p => p.id === passType)?.icon || '📄'}
+              {allPassTypes.find(p => p.id === passType)?.icon || '📄'}
             </div>
           </div>
         </div>
@@ -325,9 +441,9 @@ export default function CreatePassModal({ isOpen, onClose, onSuccess, editPass }
           setImagePreview(editPass.pass_data.logo)
         }
       } else {
-        // Reset for new pass
-        setSelectedType(null)
-        setStep('select')
+        // Reset for new pass - auto-select loyalty since it's the only option
+        setSelectedType('loyalty')
+        setStep('form') // Skip selection step since there's only one option
         setFormData({})
         setImagePreview(null)
       }
@@ -374,7 +490,7 @@ export default function CreatePassModal({ isOpen, onClose, onSuccess, editPass }
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
-  const handleImageUpload = async (file: File) => {
+  const handleImageUpload = async (file: File, fieldName: string = 'logo') => {
     if (!file) return
 
     // Validate file type
@@ -392,12 +508,14 @@ export default function CreatePassModal({ isOpen, onClose, onSuccess, editPass }
     setUploadingImage(true)
 
     try {
-      // Create preview immediately
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        setImagePreview(e.target?.result as string)
+      // Create preview immediately for logo
+      if (fieldName === 'logo') {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          setImagePreview(e.target?.result as string)
+        }
+        reader.readAsDataURL(file)
       }
-      reader.readAsDataURL(file)
 
       // Create FormData for upload
       const formDataUpload = new FormData()
@@ -416,8 +534,8 @@ export default function CreatePassModal({ isOpen, onClose, onSuccess, editPass }
       }
 
       if (data.success && data.url) {
-        // Update form data with the returned URL
-        handleFormChange('logo', data.url)
+        // Update form data with the returned URL - use provided field name
+        handleFormChange(fieldName, data.url)
       } else {
         throw new Error('Invalid response from server')
       }
@@ -425,7 +543,9 @@ export default function CreatePassModal({ isOpen, onClose, onSuccess, editPass }
     } catch (error) {
       console.error('Upload error:', error)
       alert(`Failed to upload image: ${error instanceof Error ? error.message : 'Unknown error'}`)
-      setImagePreview(null)
+      if (fieldName === 'logo') {
+        setImagePreview(null)
+      }
     } finally {
       setUploadingImage(false)
     }
@@ -437,7 +557,7 @@ export default function CreatePassModal({ isOpen, onClose, onSuccess, editPass }
     // Validate required fields
     const requiredFields: Record<PassType, string[]> = {
       'gift-card': ['title', 'cardNumber', 'balance'],
-      'loyalty': ['title', 'memberName', 'pointsBalance', 'tier'],
+      'loyalty': ['title', 'pointsBalance', 'tier'],
       'offer': ['title', 'offerCode', 'expiryDate', 'redemptionInstructions'],
       'smart-tap': ['title', 'merchantId', 'deviceBindingId'],
       'generic': ['title']
@@ -755,95 +875,233 @@ export default function CreatePassModal({ isOpen, onClose, onSuccess, editPass }
 
       case 'loyalty':
         return (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Expiration Date
-                </label>
-                <input
-                  type="date"
-                  value={formData.expirationDate || ''}
-                  onChange={(e) => handleFormChange('expirationDate', e.target.value)}
-                  className="w-full h-[44px] px-4 rounded-[20px] bg-white/60 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Account ID
-                </label>
-                <input
-                  type="text"
-                  value={formData.accountId || ''}
-                  onChange={(e) => handleFormChange('accountId', e.target.value)}
-                  className="w-full h-[44px] px-4 rounded-[20px] bg-white/60 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                  placeholder="Member account ID"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Secondary Points Type
-                </label>
-                <input
-                  type="text"
-                  value={formData.secondaryPointsType || ''}
-                  onChange={(e) => handleFormChange('secondaryPointsType', e.target.value)}
-                  className="w-full h-[44px] px-4 rounded-[20px] bg-white/60 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                  placeholder="Miles, Stamps, etc."
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Secondary Points Balance
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  value={formData.secondaryPointsBalance || ''}
-                  onChange={(e) => handleFormChange('secondaryPointsBalance', e.target.value)}
-                  className="w-full h-[44px] px-4 rounded-[20px] bg-white/60 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                  placeholder="0"
-                />
+          <div className="space-y-6">
+            {/* Barcode & QR Code Settings */}
+            <div className="p-4 bg-gray-50 rounded-2xl">
+              <h4 className="text-sm font-semibold text-gray-900 mb-3">📱 Barcode Settings</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Barcode Format
+                  </label>
+                  <select
+                    value={formData.barcodeFormat || 'QR_CODE'}
+                    onChange={(e) => handleFormChange('barcodeFormat', e.target.value)}
+                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                  >
+                    <option value="QR_CODE">QR Code</option>
+                    <option value="CODE_128">Code 128</option>
+                    <option value="PDF_417">PDF 417</option>
+                    <option value="AZTEC">Aztec</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Barcode Value
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.barcodeValue || formData.memberId || ''}
+                    onChange={(e) => handleFormChange('barcodeValue', e.target.value)}
+                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="Scannable value"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Alternative Text (shown below barcode)
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.barcodeAltText || ''}
+                    onChange={(e) => handleFormChange('barcodeAltText', e.target.value)}
+                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="Member ID or account number"
+                  />
+                </div>
               </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-black mb-2">
-                Terms & Conditions
-              </label>
-              <textarea
-                value={formData.termsConditions || ''}
-                onChange={(e) => handleFormChange('termsConditions', e.target.value)}
-                rows={3}
-                className="w-full px-4 py-3 rounded-[20px] bg-white/60 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent resize-none"
-                placeholder="Loyalty program terms and conditions"
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Program Website
-                </label>
-                <input
-                  type="url"
-                  value={formData.programWebsite || ''}
-                  onChange={(e) => handleFormChange('programWebsite', e.target.value)}
-                  className="w-full h-[44px] px-4 rounded-[20px] bg-white/60 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                  placeholder="https://loyalty.company.com"
-                />
+
+            {/* Program Details */}
+            <div className="p-4 bg-gray-50 rounded-2xl">
+              <h4 className="text-sm font-semibold text-gray-900 mb-3">ℹ️ Program Details</h4>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Program Name
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.programName || ''}
+                    onChange={(e) => handleFormChange('programName', e.target.value)}
+                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="VIP Rewards Program"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Terms & Conditions
+                  </label>
+                  <textarea
+                    value={formData.termsConditions || ''}
+                    onChange={(e) => handleFormChange('termsConditions', e.target.value)}
+                    rows={4}
+                    className="w-full px-4 py-3 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent resize-none"
+                    placeholder="Program terms, conditions, and restrictions"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Customer Service Phone
-                </label>
-                <input
-                  type="tel"
-                  value={formData.customerServicePhone || ''}
-                  onChange={(e) => handleFormChange('customerServicePhone', e.target.value)}
-                  className="w-full h-[44px] px-4 rounded-[20px] bg-white/60 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                  placeholder="+1 (555) 123-4567"
-                />
+            </div>
+
+            {/* Contact & Links */}
+            <div className="p-4 bg-gray-50 rounded-2xl">
+              <h4 className="text-sm font-semibold text-gray-900 mb-3">🔗 Contact & Links</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Program Website
+                  </label>
+                  <input
+                    type="url"
+                    value={formData.programWebsite || ''}
+                    onChange={(e) => handleFormChange('programWebsite', e.target.value)}
+                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="https://loyalty.company.com"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Support Email
+                  </label>
+                  <input
+                    type="email"
+                    value={formData.supportEmail || ''}
+                    onChange={(e) => handleFormChange('supportEmail', e.target.value)}
+                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="support@company.com"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Customer Service Phone
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.customerServicePhone || ''}
+                    onChange={(e) => handleFormChange('customerServicePhone', e.target.value)}
+                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="+1 (555) 123-4567"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Help URL
+                  </label>
+                  <input
+                    type="url"
+                    value={formData.helpUrl || ''}
+                    onChange={(e) => handleFormChange('helpUrl', e.target.value)}
+                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="https://help.company.com"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Location Information */}
+            <div className="p-4 bg-gray-50 rounded-2xl">
+              <h4 className="text-sm font-semibold text-gray-900 mb-3">📍 Locations</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Store Locations (comma-separated)
+                  </label>
+                  <textarea
+                    value={formData.storeLocations || ''}
+                    onChange={(e) => handleFormChange('storeLocations', e.target.value)}
+                    rows={3}
+                    className="w-full px-4 py-3 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent resize-none"
+                    placeholder="123 Main St, New York, NY; 456 Oak Ave, Los Angeles, CA"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Nearest Location
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.nearestLocation || ''}
+                    onChange={(e) => handleFormChange('nearestLocation', e.target.value)}
+                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="Downtown Store"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Distance to Nearest
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.distanceToNearest || ''}
+                    onChange={(e) => handleFormChange('distanceToNearest', e.target.value)}
+                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="2.5 miles"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Fields */}
+            <div className="p-4 bg-gray-50 rounded-2xl">
+              <h4 className="text-sm font-semibold text-gray-900 mb-3">➕ Additional Information</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Account ID/Number
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.accountId || ''}
+                    onChange={(e) => handleFormChange('accountId', e.target.value)}
+                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="ACC-123456"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Membership Number
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.membershipNumber || ''}
+                    onChange={(e) => handleFormChange('membershipNumber', e.target.value)}
+                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="MEM-789012"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Birthday Reward
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.birthdayReward || ''}
+                    onChange={(e) => handleFormChange('birthdayReward', e.target.value)}
+                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="Free dessert"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Anniversary Date
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.anniversaryDate || ''}
+                    onChange={(e) => handleFormChange('anniversaryDate', e.target.value)}
+                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -1264,73 +1522,341 @@ export default function CreatePassModal({ isOpen, onClose, onSuccess, editPass }
         return (
           <div>
             {commonFields}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div>
+            
+            {/* Branding & Images */}
+            <div className="mb-6 p-4 bg-gray-50 rounded-2xl">
+              <h4 className="text-sm font-semibold text-gray-900 mb-3">🎨 Branding & Images</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Primary Brand Color
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="color"
+                      value={formData.brandColor || '#000000'}
+                      onChange={(e) => handleFormChange('brandColor', e.target.value)}
+                      className="w-12 h-[44px] rounded-[20px] border border-gray-200 cursor-pointer"
+                    />
+                    <input
+                      type="text"
+                      value={formData.brandColor || '#000000'}
+                      onChange={(e) => handleFormChange('brandColor', e.target.value)}
+                      className="flex-1 h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                      placeholder="#000000"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Background Color
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="color"
+                      value={formData.backgroundColor || '#FFFFFF'}
+                      onChange={(e) => handleFormChange('backgroundColor', e.target.value)}
+                      className="w-12 h-[44px] rounded-[20px] border border-gray-200 cursor-pointer"
+                    />
+                    <input
+                      type="text"
+                      value={formData.backgroundColor || '#FFFFFF'}
+                      onChange={(e) => handleFormChange('backgroundColor', e.target.value)}
+                      className="flex-1 h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                      placeholder="#FFFFFF"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Text Color
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="color"
+                      value={formData.textColor || '#000000'}
+                      onChange={(e) => handleFormChange('textColor', e.target.value)}
+                      className="w-12 h-[44px] rounded-[20px] border border-gray-200 cursor-pointer"
+                    />
+                    <input
+                      type="text"
+                      value={formData.textColor || '#000000'}
+                      onChange={(e) => handleFormChange('textColor', e.target.value)}
+                      className="flex-1 h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                      placeholder="#000000"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Label Color
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="color"
+                      value={formData.labelColor || '#666666'}
+                      onChange={(e) => handleFormChange('labelColor', e.target.value)}
+                      className="w-12 h-[44px] rounded-[20px] border border-gray-200 cursor-pointer"
+                    />
+                    <input
+                      type="text"
+                      value={formData.labelColor || '#666666'}
+                      onChange={(e) => handleFormChange('labelColor', e.target.value)}
+                      className="flex-1 h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                      placeholder="#666666"
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              {/* Background Image Upload */}
+              <div className="mt-4">
                 <label className="block text-sm font-medium text-black mb-2">
-                  Brand Color
+                  Background Image (Optional)
                 </label>
-                <div className="flex gap-2">
-                  <input
-                    type="color"
-                    value={formData.brandColor || '#000000'}
-                    onChange={(e) => handleFormChange('brandColor', e.target.value)}
-                    className="w-12 h-[44px] rounded-[20px] border border-gray-200 cursor-pointer"
-                  />
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (file) {
+                          handleImageUpload(file, 'backgroundImage')
+                        }
+                      }}
+                      className="hidden"
+                      id="background-image-upload"
+                      disabled={uploadingImage}
+                    />
+                    <label
+                      htmlFor="background-image-upload"
+                      className={`
+                        flex-1 h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 
+                        flex items-center cursor-pointer hover:bg-white/80 transition-colors
+                        ${uploadingImage ? 'opacity-50 cursor-not-allowed' : ''}
+                      `}
+                    >
+                      {uploadingImage ? (
+                        <span className="text-gray-500">Uploading background...</span>
+                      ) : formData.backgroundImage ? (
+                        <span className="text-green-600">✓ Background image uploaded</span>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <Upload size={16} className="text-gray-400" />
+                          <span className="text-gray-500">Choose background image...</span>
+                        </div>
+                      )}
+                    </label>
+                  </div>
+                  {formData.backgroundImage && (
+                    <div className="relative inline-block">
+                      <img
+                        src={formData.backgroundImage}
+                        alt="Background preview"
+                        className="w-32 h-20 object-cover rounded-lg border border-gray-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleFormChange('backgroundImage', '')
+                        }}
+                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Program Description */}
+            <div className="mb-6 p-4 bg-gray-50 rounded-2xl">
+              <h4 className="text-sm font-semibold text-gray-900 mb-3">� Program Details</h4>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Program Name
+                  </label>
                   <input
                     type="text"
-                    value={formData.brandColor || '#000000'}
-                    onChange={(e) => handleFormChange('brandColor', e.target.value)}
-                    className="flex-1 h-[44px] px-4 rounded-[20px] bg-white/60 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                    placeholder="#000000"
+                    value={formData.programName || ''}
+                    onChange={(e) => handleFormChange('programName', e.target.value)}
+                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="VIP Rewards Program"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Description
+                  </label>
+                  <textarea
+                    value={formData.description || ''}
+                    onChange={(e) => handleFormChange('description', e.target.value)}
+                    rows={3}
+                    className="w-full px-4 py-3 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent resize-none"
+                    placeholder="Earn rewards with every purchase..."
                   />
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Member Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.memberName || ''}
-                  onChange={(e) => handleFormChange('memberName', e.target.value)}
-                  className="w-full h-[44px] px-4 rounded-[20px] bg-white/60 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                  placeholder="Enter member name"
-                  required
-                />
+            </div>
+
+            {/* Points & Rewards Configuration */}
+            <div className="mb-6 p-4 bg-gray-50 rounded-2xl">
+              <h4 className="text-sm font-semibold text-gray-900 mb-3">🏆 Points & Rewards</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Starting Points <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={formData.pointsBalance || '0'}
+                    onChange={(e) => handleFormChange('pointsBalance', e.target.value)}
+                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="0"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Points Label
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.pointsLabel || 'POINTS'}
+                    onChange={(e) => handleFormChange('pointsLabel', e.target.value.toUpperCase())}
+                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="POINTS / STARS / REWARDS"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Points for Reward
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={formData.pointsForReward || ''}
+                    onChange={(e) => handleFormChange('pointsForReward', e.target.value)}
+                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="100"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Reward Description
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.rewardDescription || ''}
+                    onChange={(e) => handleFormChange('rewardDescription', e.target.value)}
+                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="Free coffee"
+                  />
+                </div>
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Points Balance <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  value={formData.pointsBalance || ''}
-                  onChange={(e) => handleFormChange('pointsBalance', e.target.value)}
-                  className="w-full h-[44px] px-4 rounded-[20px] bg-white/60 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                  placeholder="0"
-                  required
-                />
+
+            {/* Membership Tiers */}
+            <div className="mb-6 p-4 bg-gray-50 rounded-2xl">
+              <h4 className="text-sm font-semibold text-gray-900 mb-3">⭐ Membership Tiers</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Starting Tier <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={formData.tier || 'bronze'}
+                    onChange={(e) => handleFormChange('tier', e.target.value)}
+                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    required
+                  >
+                    <option value="bronze">Bronze</option>
+                    <option value="silver">Silver</option>
+                    <option value="gold">Gold</option>
+                    <option value="platinum">Platinum</option>
+                    <option value="diamond">Diamond</option>
+                    <option value="vip">VIP</option>
+                    <option value="elite">Elite</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Tier Badge Color
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="color"
+                      value={formData.tierColor || formData.brandColor || '#000000'}
+                      onChange={(e) => handleFormChange('tierColor', e.target.value)}
+                      className="w-12 h-[44px] rounded-[20px] border border-gray-200 cursor-pointer"
+                    />
+                    <input
+                      type="text"
+                      value={formData.tierColor || formData.brandColor || '#000000'}
+                      onChange={(e) => handleFormChange('tierColor', e.target.value)}
+                      className="flex-1 h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                      placeholder="#000000"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Next Tier
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.nextTier || ''}
+                    onChange={(e) => handleFormChange('nextTier', e.target.value)}
+                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="Silver"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Points to Next Tier
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={formData.pointsToNextTier || ''}
+                    onChange={(e) => handleFormChange('pointsToNextTier', e.target.value)}
+                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="500"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Tier <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={formData.tier || ''}
-                  onChange={(e) => handleFormChange('tier', e.target.value)}
-                  className="w-full h-[44px] px-4 rounded-[20px] bg-white/60 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                  required
-                >
-                  <option value="">Select tier</option>
-                  <option value="bronze">Bronze</option>
-                  <option value="silver">Silver</option>
-                  <option value="gold">Gold</option>
-                  <option value="platinum">Platinum</option>
-                  <option value="diamond">Diamond</option>
-                </select>
+            </div>
+
+            {/* Dates */}
+            <div className="mb-6 p-4 bg-gray-50 rounded-2xl">
+              <h4 className="text-sm font-semibold text-gray-900 mb-3">📅 Dates</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Member Since
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.memberSince || new Date().toISOString().split('T')[0]}
+                    onChange={(e) => handleFormChange('memberSince', e.target.value)}
+                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Expiration Date
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.expirationDate || ''}
+                    onChange={(e) => handleFormChange('expirationDate', e.target.value)}
+                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -1453,8 +1979,8 @@ export default function CreatePassModal({ isOpen, onClose, onSuccess, editPass }
                 {step === 'select' 
                   ? 'Choose the type of pass you want to create' 
                   : editPass
-                    ? `Editing ${passTypes.find(p => p.id === selectedType)?.name || 'pass'}`
-                    : `Setting up your ${passTypes.find(p => p.id === selectedType)?.name}`
+                    ? `Editing ${allPassTypes.find(p => p.id === selectedType)?.name || 'pass'}`
+                    : `Setting up your ${allPassTypes.find(p => p.id === selectedType)?.name}`
                 }
               </p>
             </div>
@@ -1518,14 +2044,14 @@ export default function CreatePassModal({ isOpen, onClose, onSuccess, editPass }
                   <div className="mb-6">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="text-2xl">
-                        {passTypes.find(p => p.id === selectedType)?.icon}
+                        {allPassTypes.find(p => p.id === selectedType)?.icon}
                       </div>
                       <div>
                         <h3 className="text-lg font-medium text-black">
-                          {passTypes.find(p => p.id === selectedType)?.name} Configuration
+                          {allPassTypes.find(p => p.id === selectedType)?.name} Configuration
                         </h3>
                         <p className="text-sm text-foreground">
-                          Fill in the details for your {passTypes.find(p => p.id === selectedType)?.name.toLowerCase()}
+                          Fill in the details for your {allPassTypes.find(p => p.id === selectedType)?.name.toLowerCase()}
                         </p>
                       </div>
                     </div>
@@ -1598,39 +2124,20 @@ export default function CreatePassModal({ isOpen, onClose, onSuccess, editPass }
                 <div className="flex gap-3">
                   {successData?.qrCodeUrl ? (
                     <>
-                      <div className="flex items-center gap-3">
-                        {successData?.passUrl && successData.passId && (
-                          <>
-                            <GoogleWalletButton
-                              passUrl={successData.passUrl}
-                              passId={successData.passId}
-                              size="md"
-                              variant="primary"
-                            />
-                            <AppleWalletButton
-                              passId={successData.passId}
-                              size="md"
-                              variant="outline"
-                              onError={(error) => console.error('Apple Wallet error:', error)}
-                              onSuccess={() => console.log('Apple Wallet pass downloaded')}
-                            />
-                          </>
-                        )}
-                        <a
-                          href={successData.qrCodeUrl}
-                          download="pass-qr-code.png"
-                          className="px-4 py-2 bg-green-600 text-white rounded-4xl font-medium hover:bg-green-700 transition-colors flex items-center gap-2"
-                          onClick={() => {
-                            // Track QR code download
-                            if (successData.passId) {
-                              AnalyticsTracker.trackDownload(successData.passId.toString()).catch(console.warn)
-                            }
-                          }}
-                        >
-                          <Download size={16} />
-                          Download QR Code
-                        </a>
-                      </div>
+                      <a
+                        href={successData.qrCodeUrl}
+                        download="pass-qr-code.png"
+                        className="px-4 py-2 bg-green-600 text-white rounded-4xl font-medium hover:bg-green-700 transition-colors flex items-center gap-2"
+                        onClick={() => {
+                          // Track QR code download
+                          if (successData.passId) {
+                            AnalyticsTracker.trackDownload(successData.passId.toString()).catch(console.warn)
+                          }
+                        }}
+                      >
+                        <Download size={16} />
+                        Download QR Code
+                      </a>
                       <button
                         onClick={onClose}
                         className="px-4 py-2 text-foreground hover:text-black transition-colors"
@@ -1702,24 +2209,7 @@ export default function CreatePassModal({ isOpen, onClose, onSuccess, editPass }
                       <p className="text-xs text-gray-500 mt-3 leading-relaxed">
                         Customers can scan this QR code to add the pass directly to their mobile wallet
                       </p>
-                      <div className="flex items-center justify-center gap-3 mt-4">
-                        {successData?.passUrl && successData.passId && (
-                          <>
-                            <GoogleWalletButton
-                              passUrl={successData.passUrl}
-                              passId={successData.passId}
-                              size="sm"
-                              variant="primary"
-                            />
-                            <AppleWalletButton
-                              passId={successData.passId}
-                              size="sm"
-                              variant="outline"
-                              onError={(error) => console.error('Apple Wallet error:', error)}
-                              onSuccess={() => console.log('Apple Wallet pass downloaded')}
-                            />
-                          </>
-                        )}
+                      <div className="flex items-center justify-center mt-4">
                         <a
                           href={successData.qrCodeUrl}
                           download="pass-qr-code.png"
