@@ -36,16 +36,33 @@ interface PassData {
   organizationName?: string
   serialNumber?: string
   
-  // Loyalty - ENHANCED with all form fields
+  // Loyalty - ENHANCED with all form fields (general pass - no member info required)
   points?: string | number
+  pointsBalance?: string | number
+  pointsLabel?: string
+  pointsForReward?: string | number
+  rewardDescription?: string
   membershipId?: string
   tier?: string
+  tierColor?: string
+  nextTier?: string
+  pointsToNextTier?: string | number
   membershipExpiry?: string
-  memberName?: string
+  expirationDate?: string
+  issueDate?: string
+  memberName?: string  // Optional - for backward compatibility
+  memberSince?: string
   secondaryPointsType?: string
   secondaryPointsBalance?: string | number
+  programName?: string
   programWebsite?: string
+  nearestLocation?: string
+  distanceToNearest?: string
   customerServicePhone?: string
+  
+  // Visual customization - textColor for loyalty-specific text styling
+  textColor?: string
+  backgroundImage?: string
   
   // Gift Card - ENHANCED with all form fields
   balance?: string | number
@@ -261,12 +278,24 @@ export async function createAppleWalletPass(passData: PassData): Promise<Buffer>
   // Header Fields - NO currencyCode allowed here!
   passFields.headerFields = []
   
-  if (passData.passType === 'loyalty' && passData.points) {
+  if (passData.passType === 'loyalty') {
+    const pointsBalance = passData.pointsBalance || passData.points || '0'
+    const pointsLabel = passData.pointsLabel || 'POINTS'
+    
     passFields.headerFields.push({
       key: 'points',
-      label: 'POINTS',
-      value: passData.points.toString()
+      label: pointsLabel.toUpperCase(),
+      value: pointsBalance.toString()
     })
+    
+    // Add program name to header if available
+    if (passData.programName) {
+      passFields.headerFields.push({
+        key: 'programName',
+        label: 'PROGRAM',
+        value: passData.programName
+      })
+    }
   } else if (passData.passType === 'gift-card' && passData.balance) {
     // Format balance as plain text with currency symbol
     const balanceStr = passData.balance.toString()
@@ -291,18 +320,58 @@ export async function createAppleWalletPass(passData: PassData): Promise<Buffer>
     })
   }
 
-  // Primary Fields (main content)
-  passFields.primaryFields = [
-    {
+  // Primary Fields (main content) - Program name for general pass
+  passFields.primaryFields = []
+  
+  if (passData.passType === 'loyalty') {
+    // For general loyalty pass, show program name or title
+    passFields.primaryFields.push({
       key: 'title',
-      label: passData.passType === 'loyalty' ? 'MEMBER NAME' : 'TITLE',
+      label: 'LOYALTY PROGRAM',
+      value: passData.programName || passData.title
+    })
+  } else {
+    passFields.primaryFields.push({
+      key: 'title',
+      label: 'TITLE',
       value: passData.title
-    }
-  ]
+    })
+  }
 
   // Secondary Fields
   passFields.secondaryFields = []
   
+  // Loyalty-specific secondary fields
+  if (passData.passType === 'loyalty') {
+    // Show tier prominently
+    if (passData.tier) {
+      passFields.secondaryFields.push({
+        key: 'tier',
+        label: 'TIER',
+        value: passData.tier.toUpperCase()
+      })
+    }
+    
+    // Show points for reward if configured
+    if (passData.pointsForReward) {
+      passFields.secondaryFields.push({
+        key: 'pointsForReward',
+        label: 'REWARD AT',
+        value: `${passData.pointsForReward} ${passData.pointsLabel || 'POINTS'}`
+      })
+    }
+    
+    // Show next tier progress if configured
+    if (passData.nextTier && passData.pointsToNextTier) {
+      passFields.secondaryFields.push({
+        key: 'nextTier',
+        label: 'NEXT TIER',
+        value: `${passData.nextTier} (${passData.pointsToNextTier} ${passData.pointsLabel || 'points'} needed)`
+      })
+    }
+  }
+  
+  // Generic secondary fields for other pass types
   if (passData.membershipId) {
     passFields.secondaryFields.push({
       key: 'memberId',
@@ -319,14 +388,6 @@ export async function createAppleWalletPass(passData: PassData): Promise<Buffer>
     })
   }
   
-  if (passData.tier) {
-    passFields.secondaryFields.push({
-      key: 'tier',
-      label: 'TIER',
-      value: passData.tier
-    })
-  }
-  
   if (passData.code) {
     passFields.secondaryFields.push({
       key: 'code',
@@ -338,6 +399,48 @@ export async function createAppleWalletPass(passData: PassData): Promise<Buffer>
   // Auxiliary Fields
   passFields.auxiliaryFields = []
   
+  // Loyalty-specific auxiliary fields
+  if (passData.passType === 'loyalty') {
+    // Issue date (member since)
+    if (passData.issueDate || passData.memberSince) {
+      passFields.auxiliaryFields.push({
+        key: 'issueDate',
+        label: 'ISSUED',
+        value: passData.issueDate || passData.memberSince,
+        dateStyle: 'PKDateStyleShort'
+      })
+    }
+    
+    // Expiration date
+    if (passData.expirationDate || passData.membershipExpiry) {
+      passFields.auxiliaryFields.push({
+        key: 'expirationDate',
+        label: 'EXPIRES',
+        value: passData.expirationDate || passData.membershipExpiry,
+        dateStyle: 'PKDateStyleShort'
+      })
+    }
+    
+    // Nearest location
+    if (passData.nearestLocation) {
+      passFields.auxiliaryFields.push({
+        key: 'nearestLocation',
+        label: 'NEAREST STORE',
+        value: passData.nearestLocation
+      })
+    }
+    
+    // Reward description if configured
+    if (passData.rewardDescription && passData.pointsForReward) {
+      passFields.auxiliaryFields.push({
+        key: 'rewardDescription',
+        label: 'REWARD',
+        value: passData.rewardDescription
+      })
+    }
+  }
+  
+  // Generic auxiliary fields for other pass types
   if (passData.expiryDate) {
     passFields.auxiliaryFields.push({
       key: 'expires',
@@ -347,7 +450,7 @@ export async function createAppleWalletPass(passData: PassData): Promise<Buffer>
     })
   }
   
-  if (passData.membershipExpiry) {
+  if (passData.membershipExpiry && passData.passType !== 'loyalty') {
     passFields.auxiliaryFields.push({
       key: 'membershipExpiry',
       label: 'VALID UNTIL',
@@ -378,6 +481,59 @@ export async function createAppleWalletPass(passData: PassData): Promise<Buffer>
   // Back Fields (shown on back of pass)
   passFields.backFields = []
   
+  // Loyalty-specific back fields
+  if (passData.passType === 'loyalty') {
+    // Program description
+    if (passData.description) {
+      passFields.backFields.push({
+        key: 'description',
+        label: 'ABOUT THIS PROGRAM',
+        value: passData.description
+      })
+    }
+    
+    // Program website
+    if (passData.programWebsite) {
+      passFields.backFields.push({
+        key: 'programWebsite',
+        label: 'WEBSITE',
+        value: passData.programWebsite
+      })
+    }
+    
+    // Customer service
+    if (passData.customerServicePhone) {
+      passFields.backFields.push({
+        key: 'customerService',
+        label: 'CUSTOMER SERVICE',
+        value: passData.customerServicePhone
+      })
+    }
+    
+    // Distance to nearest location
+    if (passData.distanceToNearest && passData.nearestLocation) {
+      passFields.backFields.push({
+        key: 'distanceInfo',
+        label: 'LOCATION INFO',
+        value: `${passData.nearestLocation} - ${passData.distanceToNearest}`
+      })
+    }
+    
+    // Tier progress details
+    if (passData.nextTier && passData.pointsToNextTier) {
+      const currentPoints = parseInt(passData.pointsBalance?.toString() || '0')
+      const pointsNeeded = parseInt(passData.pointsToNextTier.toString())
+      const progress = Math.round((currentPoints / (currentPoints + pointsNeeded)) * 100)
+      
+      passFields.backFields.push({
+        key: 'tierProgress',
+        label: 'TIER PROGRESS',
+        value: `${progress}% to ${passData.nextTier} tier. Earn ${pointsNeeded} more ${passData.pointsLabel || 'points'} to upgrade.`
+      })
+    }
+  }
+  
+  // Generic back fields for other pass types
   if (passData.offerDetails) {
     passFields.backFields.push({
       key: 'offerDetails',
@@ -386,7 +542,7 @@ export async function createAppleWalletPass(passData: PassData): Promise<Buffer>
     })
   }
   
-  if (passData.description) {
+  if (passData.description && passData.passType !== 'loyalty') {
     passFields.backFields.push({
       key: 'description',
       label: 'DESCRIPTION',
@@ -473,6 +629,20 @@ export async function createAppleWalletPass(passData: PassData): Promise<Buffer>
         }
       } catch (err) {
         console.warn('Failed to add strip image:', err)
+      }
+    }
+
+    // Add background image if provided (full-width background for pass)
+    if (passData.backgroundImage) {
+      try {
+        const backgroundBuffer = await downloadImage(passData.backgroundImage)
+        if (backgroundBuffer.length > 0) {
+          pass.addBuffer('background.png', backgroundBuffer)
+          pass.addBuffer('background@2x.png', backgroundBuffer)
+          console.log('✅ Background image added to pass')
+        }
+      } catch (err) {
+        console.warn('Failed to add background image:', err)
       }
     }
 
