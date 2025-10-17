@@ -29,7 +29,8 @@ export async function POST(request: NextRequest) {
       options: {
         data: {
           name: name || '',
-        }
+        },
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?verified=true`
       }
     })
 
@@ -41,7 +42,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({
-      message: 'User created successfully',
+      message: 'Please check your email to verify your account',
       user: data.user
     })
 

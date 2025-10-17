@@ -117,24 +117,40 @@ function PassCardPreview({ passType, formData, imagePreview }: PassCardPreviewPr
   const textColor = formData.textColor || '#000000'
   const title = formData.title || 'Your Pass Title'
   const passTypeData = allPassTypes.find(p => p.id === passType)
+  const hasBackgroundImage = Boolean(formData.backgroundImage || formData.backgroundImagePreview)
+  const backgroundImageUrl = formData.backgroundImage || formData.backgroundImagePreview
   
   // For loyalty passes, use custom background if specified
-  const cardBackground = passType === 'loyalty' && backgroundColor !== '#FFFFFF'
-    ? backgroundColor
-    : `linear-gradient(135deg, ${brandColor}15 0%, ${brandColor}05 100%)`
+  const cardBackground = hasBackgroundImage
+    ? undefined
+    : passType === 'loyalty' && backgroundColor !== '#FFFFFF'
+      ? backgroundColor
+      : `linear-gradient(135deg, ${brandColor}15 0%, ${brandColor}05 100%)`
   
   return (
     <div className="relative">
       {/* Card Container */}
       <div 
-        className="w-full rounded-2xl shadow-lg overflow-hidden border border-gray-200 transition-all duration-300"
+        className="w-full rounded-2xl shadow-lg overflow-hidden border border-gray-200 transition-all duration-300 relative"
         style={{ 
           background: cardBackground,
           minHeight: '200px'
         }}
       >
+        {/* Background Image */}
+        {backgroundImageUrl && (
+          <div className="absolute inset-0 w-full h-full">
+            <img 
+              src={backgroundImageUrl} 
+              alt="Background" 
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-black/20"></div>
+          </div>
+        )}
+
         {/* Top Section with Logo and Title */}
-        <div className="p-5">
+        <div className="p-5 relative z-10">
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-3">
               {imagePreview ? (
@@ -166,12 +182,14 @@ function PassCardPreview({ passType, formData, imagePreview }: PassCardPreviewPr
           </div>
 
           {/* Pass Type Specific Content */}
-          {renderPassSpecificPreview(passType, formData, brandColor)}
+          <div className={`${backgroundImageUrl ? 'text-white' : ''}`}>
+            {renderPassSpecificPreview(passType, formData, brandColor)}
+          </div>
         </div>
 
         {/* Bottom Strip with Brand Color */}
         <div 
-          className="h-1.5"
+          className="h-1.5 relative z-10"
           style={{ backgroundColor: brandColor }}
         />
       </div>
@@ -516,6 +534,18 @@ export default function CreatePassModal({ isOpen, onClose, onSuccess, editPass }
         }
         reader.readAsDataURL(file)
       }
+      
+      // Create a preview for background images as well
+      if (fieldName === 'backgroundImage') {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          // We'll directly set it in formData for preview
+          const previewUrl = e.target?.result as string
+          // This sets a temporary preview while the real image is uploading
+          handleFormChange('backgroundImagePreview', previewUrl)
+        }
+        reader.readAsDataURL(file)
+      }
 
       // Create FormData for upload
       const formDataUpload = new FormData()
@@ -536,6 +566,11 @@ export default function CreatePassModal({ isOpen, onClose, onSuccess, editPass }
       if (data.success && data.url) {
         // Update form data with the returned URL - use provided field name
         handleFormChange(fieldName, data.url)
+        
+        // For background image, remove the preview since we have the real URL now
+        if (fieldName === 'backgroundImage') {
+          handleFormChange('backgroundImagePreview', '')
+        }
       } else {
         throw new Error('Invalid response from server')
       }
@@ -545,6 +580,9 @@ export default function CreatePassModal({ isOpen, onClose, onSuccess, editPass }
       alert(`Failed to upload image: ${error instanceof Error ? error.message : 'Unknown error'}`)
       if (fieldName === 'logo') {
         setImagePreview(null)
+      }
+      if (fieldName === 'backgroundImage') {
+        handleFormChange('backgroundImagePreview', '')
       }
     } finally {
       setUploadingImage(false)
@@ -1660,6 +1698,7 @@ export default function CreatePassModal({ isOpen, onClose, onSuccess, editPass }
                         type="button"
                         onClick={() => {
                           handleFormChange('backgroundImage', '')
+                          handleFormChange('backgroundImagePreview', '')
                         }}
                         className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
                       >
@@ -1962,7 +2001,7 @@ export default function CreatePassModal({ isOpen, onClose, onSuccess, editPass }
         />
       )}
 
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div 
         className="bg-white rounded-[20px] w-full max-w-6xl max-h-[90vh] flex"
         style={{ boxShadow: "rgba(224, 215, 198, 0.5) 0px 5px 20px 0px" }}

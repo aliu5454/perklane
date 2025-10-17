@@ -626,6 +626,7 @@ export async function createAppleWalletPass(passData: PassData): Promise<Buffer>
         if (stripBuffer.length > 0) {
           pass.addBuffer('strip.png', stripBuffer)
           pass.addBuffer('strip@2x.png', stripBuffer)
+          console.log('✅ Strip image added to pass')
         }
       } catch (err) {
         console.warn('Failed to add strip image:', err)
