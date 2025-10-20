@@ -10,8 +10,6 @@ export async function GET(request: NextRequest) {
     if (!session?.user?.id) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
-
-    console.log('Fetching customers with search:', session);
     
     const supabase = await createClient();
     
