@@ -6,7 +6,7 @@ import { authOptions } from '@/lib/auth';
 // Update customer points
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
