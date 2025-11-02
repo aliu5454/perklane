@@ -12,6 +12,9 @@ export default function SignIn() {
   const [isLoading, setIsLoading] = useState(false)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const [error, setError] = useState('')
+  const [isUnverified, setIsUnverified] = useState(false)
+  const [resent, setResent] = useState(false)
+  const [resendLoading, setResendLoading] = useState(false)
   const router = useRouter()
   const { data: session, status } = useSession()
 
@@ -43,8 +46,11 @@ export default function SignIn() {
     e.preventDefault()
     setIsLoading(true)
     setError('')
+    setIsUnverified(false)
+    setResent(false)
 
     try {
+      // First attempt to sign in
       const result = await signIn('credentials', {
         email,
         password,
@@ -52,7 +58,23 @@ export default function SignIn() {
       })
 
       if (result?.error) {
-        setError('Invalid credentials')
+        console.log(result);
+        
+        // Check if user exists but is not verified by making a separate API call
+        const checkRes = await fetch('/api/auth/check-verification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+        
+        const checkData = await checkRes.json();
+        
+        if (checkRes.ok && checkData.isUnverified) {
+          setIsUnverified(true);
+          setError('Please verify your email before signing in.');
+        } else {
+          setError('Invalid email or password');
+        }
       } else {
         // Check if sign in was successful
         const session = await getSession()
@@ -68,6 +90,33 @@ export default function SignIn() {
       setIsLoading(false)
     }
   }
+
+  const handleResend = async () => {
+    if (!email) {
+      setError('Please enter your email address first');
+      return;
+    }
+    
+    setResendLoading(true);
+    try {
+      const res = await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      
+      if (res.ok) {
+        setResent(true);
+      } else {
+        const data = await res.json();
+        setError(data.error || 'Failed to resend verification email');
+      }
+    } catch (err) {
+      setError('Failed to resend verification email');
+    } finally {
+      setResendLoading(false);
+    }
+  };
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true)
@@ -103,8 +152,27 @@ export default function SignIn() {
         <div className="bg-white/40 rounded-[20px] p-8 shadow-sm">
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
-              <div className="p-4 bg-red-50 border border-red-200 rounded-[20px] text-red-700 text-sm">
-                {error}
+              <div className={`rounded-[14px] border px-4 py-3 text-sm ${isUnverified ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-rose-50 border-rose-200 text-rose-800'}`}>
+                <p className="font-medium">{isUnverified ? 'Email not verified' : 'Sign in error'}</p>
+                <p className="mt-1">{error}</p>
+                
+                {isUnverified && (
+                  <div className="mt-3 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleResend}
+                      disabled={resendLoading}
+                      className="inline-flex items-center rounded-full bg-black text-white px-3 py-1.5 text-xs font-medium hover:opacity-90 disabled:opacity-50"
+                    >
+                      {resendLoading ? 'Sending...' : 'Resend verification email'}
+                    </button>
+                    {resent && (
+                      <span className="text-xs text-amber-700">
+                        Verification email sent!
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
             )}
             
