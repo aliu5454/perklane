@@ -3,12 +3,14 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
+import CustomerVerification from '@/components/CustomerVerification'
 
 /**
  * Wallet Selection Page
  * 
  * This page is shown when users scan a QR code for a pass.
  * It lets them choose between adding to Google Wallet or Apple Wallet.
+ * It now also includes customer verification for the loyalty program.
  * 
  * Route: /pass/[passId]
  */
@@ -18,6 +20,8 @@ interface PassInfo {
   title: string
   pass_type: string
   pass_url: string
+  business_email: string  // Changed from business_id
+  program_id: string
   pass_data: {
     title: string
     description?: string
@@ -35,6 +39,9 @@ export default function PassSelectionPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [addingToWallet, setAddingToWallet] = useState<'google' | 'apple' | null>(null)
+  const [showVerification, setShowVerification] = useState(false)
+  const [customerVerified, setCustomerVerified] = useState(false)
+  const [customerPoints, setCustomerPoints] = useState<number | null>(null)
 
   useEffect(() => {
     if (passId) {
@@ -111,6 +118,34 @@ export default function PassSelectionPage() {
       setAddingToWallet(null)
     }
   }
+  
+  // Handle customer verification success
+  const handleCustomerVerified = async (customerId: string) => {
+    if (!passInfo) return
+    
+    try {
+      // Fetch customer points if we have a program ID
+      if (passInfo.program_id) {
+        const response = await fetch(`/api/customers/${customerId}?programId=${passInfo.program_id}`)
+        
+        if (response.ok) {
+          const data = await response.json()
+          setCustomerPoints(data.points || 0)
+        }
+      }
+      
+      setCustomerVerified(true)
+    } catch (err) {
+      console.error('Error fetching customer points:', err)
+    }
+  }
+
+  // Auto-show verification form on component mount if not verified yet
+  useEffect(() => {
+    if (!customerVerified && !showVerification) {
+      setShowVerification(true);
+    }
+  }, [customerVerified, showVerification]);
 
   if (loading) {
     return (
@@ -140,6 +175,58 @@ export default function PassSelectionPage() {
           >
             Go to Homepage
           </button>
+        </div>
+      </div>
+    )
+  }
+  
+  // Show customer verification form if not verified
+  if (!customerVerified || showVerification) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-xl p-6 max-w-md w-full">
+          {customerVerified ? (
+            <div className="text-center">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Verification Complete!</h2>
+              <p className="text-gray-600 mb-4">You've successfully joined the loyalty program.</p>
+              
+              {customerPoints !== null && (
+                <div className="bg-gray-50 p-4 rounded-xl mb-6">
+                  <p className="text-gray-600 mb-1">Your Current Points</p>
+                  <p className="text-3xl font-bold">{customerPoints}</p>
+                </div>
+              )}
+              
+              <button
+                onClick={() => setShowVerification(false)}
+                className="w-full px-6 py-3 bg-black text-white rounded-full font-medium hover:bg-gray-800 transition-colors"
+              >
+                Continue to My Pass
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-900">Register for Loyalty Program</h2>
+              </div>
+              <p className="text-gray-600 mb-6">
+                Please verify your phone number to add this pass to your wallet and join the loyalty program.
+              </p>
+              
+              {passInfo && (
+                <CustomerVerification
+                  programId={passInfo.program_id}
+                  businessEmail={passInfo.business_email}
+                  onVerified={handleCustomerVerified}
+                />
+              )}
+            </>
+          )}
         </div>
       </div>
     )
@@ -196,14 +283,28 @@ export default function PassSelectionPage() {
 
         {/* Wallet Selection */}
         <div className="bg-white rounded-2xl shadow-xl p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-2 text-center">
-            Add to Your Wallet
-          </h2>
-          <p className="text-sm text-gray-600 mb-6 text-center">
-            Choose your preferred mobile wallet
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-xl font-bold text-gray-900">
+              Add to Your Wallet
+            </h2>
+            
+            {customerPoints !== null && (
+              <div className="flex items-center gap-2 bg-gray-50 py-1 px-3 rounded-full">
+                <svg className="w-4 h-4 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"></path>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 20c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"></path>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12L8 12"></path>
+                </svg>
+                <span className="font-medium">{customerPoints} Points</span>
+              </div>
+            )}
+          </div>
+          <p className="text-sm text-gray-600 mb-6">
+            Choose your preferred mobile wallet to store your loyalty pass
           </p>
 
           <div className="space-y-3">
+            
             {/* Google Wallet Button */}
             <button
               onClick={handleAddToGoogleWallet}

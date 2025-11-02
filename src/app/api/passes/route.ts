@@ -50,7 +50,8 @@ export async function GET(req: Request) {
 
     return NextResponse.json({
       passes: passes || [],
-      stats
+      stats,
+      email: session.user.email
     });
 
   } catch (error: any) {

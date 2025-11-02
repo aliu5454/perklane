@@ -59,7 +59,7 @@ export default function Navbar() {
 
             {/* Desktop Navigation Links */}
             <div className="navbar-links hidden lg:flex gap-1 items-center justify-center text-black px-2">
-                {session && isDashboardPage ? (
+                    {session && isDashboardPage ? (
                     // Dashboard Navigation
                     <>
                         <Link 
@@ -73,6 +73,12 @@ export default function Navbar() {
                             className={`nav-link ${pathname === '/dashboard/analytics' ? 'font-semibold' : ''}`}
                         >
                             Analytics
+                        </Link>
+                        <Link 
+                            href="/dashboard/points" 
+                            className={`nav-link ${pathname === '/dashboard/points' ? 'font-semibold' : ''}`}
+                        >
+                            Points
                         </Link>
                     </>
                 ) : (
@@ -224,6 +230,13 @@ export default function Navbar() {
                                 onClick={() => setMenuOpen(false)}
                             >
                                 Analytics
+                            </Link>
+                            <Link 
+                                href="/dashboard/points" 
+                                className={`w-full ${pathname === '/dashboard/points' ? 'font-semibold' : ''}`} 
+                                onClick={() => setMenuOpen(false)}
+                            >
+                                Points
                             </Link>
                         </>
                     ) : (

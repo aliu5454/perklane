@@ -36,7 +36,16 @@ export async function GET(
     // Fetch pass from database - no authentication required for public QR scanning
     const { data: pass, error: fetchError } = await supabase
       .from('passes')
-      .select('id, title, pass_type, pass_url, pass_data, status')
+      .select(`
+        id, 
+        title, 
+        pass_type, 
+        pass_url, 
+        pass_data, 
+        status,
+        class_id, 
+        user_email
+      `)
       .eq('id', passId)
       .single()
 
@@ -55,6 +64,10 @@ export async function GET(
         { status: 410 }
       )
     }
+    
+    // We'll use the passId itself as the programId, and use the user_email as the business identifier
+    const programId = passId;
+    const userEmail = pass.user_email;
 
     // Return pass information (without sensitive user data)
     return NextResponse.json({
@@ -62,6 +75,8 @@ export async function GET(
       title: pass.title,
       pass_type: pass.pass_type,
       pass_url: pass.pass_url,
+      business_email: userEmail,  // Use email instead of business_id
+      program_id: programId,      // Use passId as program_id
       pass_data: {
         title: pass.pass_data?.title || pass.title,
         description: pass.pass_data?.description,
