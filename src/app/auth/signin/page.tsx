@@ -15,6 +15,11 @@ export default function SignIn() {
   const [isUnverified, setIsUnverified] = useState(false)
   const [resent, setResent] = useState(false)
   const [resendLoading, setResendLoading] = useState(false)
+  const [showForgot, setShowForgot] = useState(false)
+  const [forgotEmail, setForgotEmail] = useState('')
+  const [forgotLoading, setForgotLoading] = useState(false)
+  const [forgotMessage, setForgotMessage] = useState('')
+  const [forgotError, setForgotError] = useState('')
   const router = useRouter()
   const { data: session, status } = useSession()
 
@@ -132,6 +137,41 @@ export default function SignIn() {
     }
   }
 
+  const handleForgotSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setForgotError('')
+    setForgotMessage('')
+
+    const emailToSend = forgotEmail || email
+    if (!emailToSend) {
+      setForgotError('Please enter your email address')
+      return
+    }
+
+    setForgotLoading(true)
+    try {
+      const res = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailToSend }),
+      })
+
+      const data = await res.json().catch(() => ({}))
+
+      if (res.ok) {
+        setForgotMessage(data.message || 'Password reset email sent. Check your inbox.')
+        // optionally clear input
+        setForgotEmail('')
+      } else {
+        setForgotError(data.error || 'Failed to send password reset email')
+      }
+    } catch (err) {
+      setForgotError('Failed to send password reset email')
+    } finally {
+      setForgotLoading(false)
+    }
+  }
+
   return (
     <main className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -206,6 +246,18 @@ export default function SignIn() {
               />
             </div>
 
+            <div className="flex items-center justify-between">
+              <div className="text-sm">
+                <button
+                  type="button"
+                  onClick={() => setShowForgot((s) => !s)}
+                  className="text-foreground hover:text-black font-medium hover:underline"
+                >
+                  Forgot password?
+                </button>
+              </div>
+            </div>
+
             <button
               type="submit"
               disabled={isLoading}
@@ -214,6 +266,66 @@ export default function SignIn() {
               {isLoading ? 'Signing in...' : 'Sign in'}
             </button>
           </form>
+
+          {/* Forgot password modal */}
+          {showForgot && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center">
+              <div className="absolute inset-0 bg-black/40" onClick={() => setShowForgot(false)} />
+              <div className="relative w-full max-w-sm bg-white rounded-[14px] p-6 shadow-lg mx-4">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="text-lg font-medium">Reset your password</h3>
+                    <p className="text-sm text-foreground mt-1">Enter the email associated with your account and we'll send a reset link.</p>
+                  </div>
+                  <button onClick={() => setShowForgot(false)} className="text-foreground hover:text-black">✕</button>
+                </div>
+
+                <form onSubmit={handleForgotSubmit} className="mt-4 space-y-3">
+                  {forgotMessage && (
+                    <div className="text-sm rounded-[10px] px-3 py-2 bg-emerald-50 border border-emerald-200 text-emerald-800">
+                      {forgotMessage}
+                    </div>
+                  )}
+                  {forgotError && (
+                    <div className="text-sm rounded-[10px] px-3 py-2 bg-rose-50 border border-rose-200 text-rose-800">
+                      {forgotError}
+                    </div>
+                  )}
+
+                  <div>
+                    <label htmlFor="forgot-email" className="block text-sm font-medium text-foreground mb-2">Email</label>
+                    <input
+                      id="forgot-email"
+                      type="email"
+                      value={forgotEmail}
+                      onChange={(e) => setForgotEmail(e.target.value)}
+                      placeholder="Enter your email"
+                      className="w-full h-[40px] px-3 rounded-[10px] bg-white/60 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                      required
+                    />
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      type="submit"
+                      disabled={forgotLoading}
+                      className="inline-flex items-center rounded-full bg-black text-white px-4 py-2 text-sm font-medium hover:opacity-90 disabled:opacity-50"
+                    >
+                      {forgotLoading ? 'Sending...' : 'Send reset link'}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowForgot(false)}
+                      className="inline-flex items-center rounded-full bg-white/70 text-foreground px-4 py-2 text-sm font-medium hover:opacity-90"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
 
           <div className="mt-6">
             <div className="relative">
