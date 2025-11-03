@@ -448,12 +448,18 @@ export default function CreatePassModal({ isOpen, onClose, onSuccess, editPass }
 
   // Reset modal state when opened
   useEffect(() => {
-    if (isOpen) {
+      if (isOpen) {
       if (editPass) {
-        // Populate form with edit data
+        // Populate form with edit data (ensure defaults exist)
         setSelectedType(editPass.pass_type as PassType)
         setStep('form')
-        setFormData(editPass.pass_data || {})
+        setFormData({
+          pointsBalance: 0,
+          pointsLabel: 'POINTS',
+          tier: 'bronze',
+          pointsToNextTier: '',
+          ...editPass.pass_data
+        })
         // Set image preview if logo exists in pass_data
         if (editPass.pass_data?.logo) {
           setImagePreview(editPass.pass_data.logo)
@@ -462,7 +468,13 @@ export default function CreatePassModal({ isOpen, onClose, onSuccess, editPass }
         // Reset for new pass - auto-select loyalty since it's the only option
         setSelectedType('loyalty')
         setStep('form') // Skip selection step since there's only one option
-        setFormData({})
+        // Provide defaults so numeric 0 is preserved and not treated as falsy
+        setFormData({
+          pointsBalance: 0,
+          pointsLabel: 'POINTS',
+          tier: 'bronze',
+          pointsToNextTier: ''
+        })
         setImagePreview(null)
       }
       
@@ -960,6 +972,116 @@ export default function CreatePassModal({ isOpen, onClose, onSuccess, editPass }
               </div>
             </div>
 
+            {/* Points & Rewards Configuration (moved to Additional Settings) */}
+            <div className="mb-6 p-4 bg-gray-50 rounded-2xl">
+              <h4 className="text-sm font-semibold text-gray-900 mb-3">🏆 Points & Rewards</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">Starting Points</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={formData.pointsBalance ?? '0'}
+                    onChange={(e) => handleFormChange('pointsBalance', e.target.value)}
+                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="0"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">Points Label</label>
+                  <input
+                    type="text"
+                    value={formData.pointsLabel || 'POINTS'}
+                    onChange={(e) => handleFormChange('pointsLabel', e.target.value.toUpperCase())}
+                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="POINTS / STARS / REWARDS"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">Points for Reward</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={formData.pointsForReward || ''}
+                    onChange={(e) => handleFormChange('pointsForReward', e.target.value)}
+                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="100"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">Reward Description</label>
+                  <input
+                    type="text"
+                    value={formData.rewardDescription || ''}
+                    onChange={(e) => handleFormChange('rewardDescription', e.target.value)}
+                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="Free coffee"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Membership Tiers (moved to Additional Settings) */}
+            <div className="mb-6 p-4 bg-gray-50 rounded-2xl">
+              <h4 className="text-sm font-semibold text-gray-900 mb-3">⭐ Membership Tiers</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">Starting Tier</label>
+                  <select
+                    value={formData.tier ?? 'bronze'}
+                    onChange={(e) => handleFormChange('tier', e.target.value)}
+                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                  >
+                    <option value="bronze">Bronze</option>
+                    <option value="silver">Silver</option>
+                    <option value="gold">Gold</option>
+                    <option value="platinum">Platinum</option>
+                    <option value="diamond">Diamond</option>
+                    <option value="vip">VIP</option>
+                    <option value="elite">Elite</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">Tier Badge Color</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="color"
+                      value={formData.tierColor || formData.brandColor || '#000000'}
+                      onChange={(e) => handleFormChange('tierColor', e.target.value)}
+                      className="w-12 h-[44px] rounded-[20px] border border-gray-200 cursor-pointer"
+                    />
+                    <input
+                      type="text"
+                      value={formData.tierColor || formData.brandColor || '#000000'}
+                      onChange={(e) => handleFormChange('tierColor', e.target.value)}
+                      className="flex-1 h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                      placeholder="#000000"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">Next Tier</label>
+                  <input
+                    type="text"
+                    value={formData.nextTier || ''}
+                    onChange={(e) => handleFormChange('nextTier', e.target.value)}
+                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="Silver"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">Points to Next Tier</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={formData.pointsToNextTier || ''}
+                    onChange={(e) => handleFormChange('pointsToNextTier', e.target.value)}
+                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="500"
+                  />
+                </div>
+              </div>
+            </div>
             {/* Program Details */}
             <div className="p-4 bg-gray-50 rounded-2xl">
               <h4 className="text-sm font-semibold text-gray-900 mb-3">ℹ️ Program Details</h4>
@@ -1741,136 +1863,9 @@ export default function CreatePassModal({ isOpen, onClose, onSuccess, editPass }
               </div>
             </div>
 
-            {/* Points & Rewards Configuration */}
-            <div className="mb-6 p-4 bg-gray-50 rounded-2xl">
-              <h4 className="text-sm font-semibold text-gray-900 mb-3">🏆 Points & Rewards</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-black mb-2">
-                    Starting Points <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={formData.pointsBalance || '0'}
-                    onChange={(e) => handleFormChange('pointsBalance', e.target.value)}
-                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                    placeholder="0"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black mb-2">
-                    Points Label
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.pointsLabel || 'POINTS'}
-                    onChange={(e) => handleFormChange('pointsLabel', e.target.value.toUpperCase())}
-                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                    placeholder="POINTS / STARS / REWARDS"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black mb-2">
-                    Points for Reward
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={formData.pointsForReward || ''}
-                    onChange={(e) => handleFormChange('pointsForReward', e.target.value)}
-                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                    placeholder="100"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black mb-2">
-                    Reward Description
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.rewardDescription || ''}
-                    onChange={(e) => handleFormChange('rewardDescription', e.target.value)}
-                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                    placeholder="Free coffee"
-                  />
-                </div>
-              </div>
-            </div>
+            {/* Points & Rewards and Membership Tiers moved to Additional Settings */}
 
-            {/* Membership Tiers */}
-            <div className="mb-6 p-4 bg-gray-50 rounded-2xl">
-              <h4 className="text-sm font-semibold text-gray-900 mb-3">⭐ Membership Tiers</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-black mb-2">
-                    Starting Tier <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={formData.tier || 'bronze'}
-                    onChange={(e) => handleFormChange('tier', e.target.value)}
-                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                    required
-                  >
-                    <option value="bronze">Bronze</option>
-                    <option value="silver">Silver</option>
-                    <option value="gold">Gold</option>
-                    <option value="platinum">Platinum</option>
-                    <option value="diamond">Diamond</option>
-                    <option value="vip">VIP</option>
-                    <option value="elite">Elite</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black mb-2">
-                    Tier Badge Color
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="color"
-                      value={formData.tierColor || formData.brandColor || '#000000'}
-                      onChange={(e) => handleFormChange('tierColor', e.target.value)}
-                      className="w-12 h-[44px] rounded-[20px] border border-gray-200 cursor-pointer"
-                    />
-                    <input
-                      type="text"
-                      value={formData.tierColor || formData.brandColor || '#000000'}
-                      onChange={(e) => handleFormChange('tierColor', e.target.value)}
-                      className="flex-1 h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                      placeholder="#000000"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black mb-2">
-                    Next Tier
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.nextTier || ''}
-                    onChange={(e) => handleFormChange('nextTier', e.target.value)}
-                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                    placeholder="Silver"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black mb-2">
-                    Points to Next Tier
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={formData.pointsToNextTier || ''}
-                    onChange={(e) => handleFormChange('pointsToNextTier', e.target.value)}
-                    className="w-full h-[44px] px-4 rounded-[20px] bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                    placeholder="500"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Dates */}
+            {/* Dates
             <div className="mb-6 p-4 bg-gray-50 rounded-2xl">
               <h4 className="text-sm font-semibold text-gray-900 mb-3">📅 Dates</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1897,7 +1892,7 @@ export default function CreatePassModal({ isOpen, onClose, onSuccess, editPass }
                   />
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
         )
 
@@ -2217,15 +2212,15 @@ export default function CreatePassModal({ isOpen, onClose, onSuccess, editPass }
 
         {/* Right Side Preview Panel - Only show in form step */}
         {step === 'form' && (
-          <div className="w-96 border-l border-gray-200 bg-gray-50 flex flex-col">
+          <div className="w-96 border-l border-gray-200 bg-gray-50 flex flex-col rounded-[20px]">
             {/* Preview Header */}
-            <div className="p-6 border-b border-gray-200 bg-white">
+            <div className="p-6 border-b rounded-[20px] border-gray-200 bg-white">
               <h3 className="text-lg font-medium text-black mb-1">Live Preview</h3>
               <p className="text-sm text-foreground">See how your pass will look</p>
             </div>
             
             {/* Preview Content */}
-            <div className="flex-1 p-6 flex flex-col justify-center items-center">
+            <div className="flex-1 p-6 flex flex-col rounded-[20px] justify-center items-center">
               <div className="w-full max-w-sm">
                 <PassCardPreview 
                   passType={selectedType}
