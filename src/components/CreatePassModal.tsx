@@ -131,26 +131,12 @@ function PassCardPreview({ passType, formData, imagePreview }: PassCardPreviewPr
     <div className="relative">
       {/* Card Container */}
       <div 
-        className="w-full rounded-2xl shadow-lg overflow-hidden border border-gray-200 transition-all duration-300 relative"
-        style={{ 
-          background: cardBackground,
-          minHeight: '200px'
-        }}
+        className="w-full rounded-2xl shadow-lg overflow-hidden border border-gray-200 transition-all duration-300 relative bg-white"
+        style={{ minHeight: '200px' }}
       >
-        {/* Background Image */}
-        {backgroundImageUrl && (
-          <div className="absolute inset-0 w-full h-full">
-            <img 
-              src={backgroundImageUrl} 
-              alt="Background" 
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-black/20"></div>
-          </div>
-        )}
 
         {/* Top Section with Logo and Title */}
-        <div className="p-5 relative z-10">
+        <div className={`p-5 relative z-10 ${backgroundImageUrl ? 'pt-4' : ''}`}>
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-3">
               {imagePreview ? (
@@ -181,12 +167,22 @@ function PassCardPreview({ passType, formData, imagePreview }: PassCardPreviewPr
             </div>
           </div>
 
+        {/* Hero / Banner Image (renders as a top strip like wallet previews) */}
+        {backgroundImageUrl && (
+          <div className="w-full h-36 sm:h-44 my-4 md:h-48 overflow-hidden">
+            <img
+              src={backgroundImageUrl}
+              alt="Background"
+              className="w-full h-full object-cover rounded-t-2xl"
+            />
+          </div>
+        )}
           {/* Pass Type Specific Content */}
           <div className={`${backgroundImageUrl ? 'text-white' : ''}`}>
             {renderPassSpecificPreview(passType, formData, brandColor)}
           </div>
         </div>
-
+        
         {/* Bottom Strip with Brand Color */}
         <div 
           className="h-1.5 relative z-10"
