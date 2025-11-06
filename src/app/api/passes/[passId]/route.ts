@@ -93,3 +93,41 @@ export async function GET(
     )
   }
 }
+// DELETE Function
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ passId: string }> }
+) {
+  try {
+    const { passId } = await params
+    if (!passId) {
+      return NextResponse.json(
+        { error: 'Pass ID is required' },
+        { status: 400 }
+      )
+    }
+    console.log('Deleting pass with ID:', passId)
+    // Delete pass from database
+    const { error: deleteError } = await supabase
+      .from('passes')
+      .delete()
+      .eq('id', passId)
+    if (deleteError) {
+      console.error('Error deleting pass:', deleteError)
+      return NextResponse.json(
+        { error: 'Failed to delete pass' },
+        { status: 500 }
+      )
+    }
+    return NextResponse.json(
+      { message: 'Pass deleted successfully' }
+    )
+  } catch (error: any) {
+    console.error('Error in pass delete API:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
