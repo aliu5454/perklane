@@ -255,6 +255,9 @@ export async function createAppleWalletPass(passData: PassData): Promise<Buffer>
     teamIdentifier: config.teamId,
     organizationName: passData.organizationName || 'Perklane',
     description: passData.description || passData.title,
+    // Web service and authentication token so Apple can register device tokens and request updates
+    ...(process.env.NEXT_PUBLIC_APP_URL && { webServiceURL: `${process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '')}/api/apple-pass/v1` }),
+    ...(process.env.APPLE_PASS_AUTH_TOKEN && { authenticationToken: process.env.APPLE_PASS_AUTH_TOKEN }),
     
     // Visual appearance
     ...(passData.backgroundColor && { backgroundColor: hexToRgb(passData.backgroundColor) }),

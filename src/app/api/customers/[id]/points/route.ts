@@ -71,6 +71,48 @@ export async function PUT(
       return NextResponse.json({ success: false, error: 'Failed to update points' }, { status: 500 });
     }
     
+    // After successful points update, attempt to push updates to linked wallet objects
+    // We do this in a best-effort manner; failures should not block the points update response
+    (async () => {
+      try {
+        // Fetch registrations in pass_customers for this customer program
+        const { data: registrations } = await supabase
+          .from('pass_customers')
+          .select('*')
+          .eq('customer_program_id', customerProgramId)
+
+        if (registrations && registrations.length > 0) {
+          const { enqueueJob } = await import('@/lib/wallet-job-queue')
+
+          for (const reg of registrations) {
+            try {
+              const newPoints = parseInt(data?.new_points?.toString() || '0') || 0
+
+              // Enqueue Google patch job
+              if (reg.google_object_id) {
+                await enqueueJob({
+                  type: 'google_patch',
+                  payload: { objectId: reg.google_object_id, balance: newPoints }
+                })
+              }
+
+              // Enqueue Apple regenerate + APNS job
+              if (reg.apple_serial_number && reg.pass_id) {
+                await enqueueJob({
+                  type: 'regenerate_pkpass',
+                  payload: { passId: reg.pass_id, registrationId: reg.id, deviceToken: reg.apple_device_token }
+                })
+              }
+            } catch (innerErr) {
+              console.error('Failed to enqueue wallet job for registration', reg, innerErr)
+            }
+          }
+        }
+      } catch (pushErr) {
+        console.error('Wallet push updates error:', pushErr)
+      }
+    })()
+
     return NextResponse.json({
       success: true,
       message: 'Customer points updated successfully',
