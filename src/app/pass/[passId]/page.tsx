@@ -72,6 +72,15 @@ export default function PassSelectionPage() {
     if (!passInfo?.pass_url) return
     
     setAddingToWallet('google')
+    // Optionally register that this customer added the pass (if we have a customerProgramId stored)
+    if ((window as any).__customerProgramId) {
+      fetch(`/api/passes/${passId}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customerProgramId: (window as any).__customerProgramId, wallet: 'google' })
+      }).catch(err => console.warn('Register pass add failed:', err))
+    }
+
     // Redirect to Google Wallet save URL
     window.location.href = passInfo.pass_url
   }
@@ -111,6 +120,19 @@ export default function PassSelectionPage() {
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
       
+      // Register the pass add for analytics/wallet updates if we have verified customer program id
+      if ((window as any).__customerProgramId) {
+        fetch(`/api/passes/${passId}/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          // Note: For Apple Wallet, the true APNS device token is delivered by Apple
+          // to the pass webServiceURL when the user adds the pass. Our web service
+          // (/api/apple-pass/v1) will capture that and store it. This register call
+          // is used for analytics and linking the customer program id to the pass.
+          body: JSON.stringify({ customerProgramId: (window as any).__customerProgramId, wallet: 'apple' })
+        }).catch(err => console.warn('Register pass add failed:', err))
+      }
+
       setAddingToWallet(null)
     } catch (err) {
       console.error('Error adding to Apple Wallet:', err)
@@ -133,6 +155,8 @@ export default function PassSelectionPage() {
           setCustomerPoints(data.points || 0)
         }
       }
+      // Store the customerProgramId globally so we can register wallet additions
+      ;(window as any).__customerProgramId = customerId
       
       setCustomerVerified(true)
     } catch (err) {

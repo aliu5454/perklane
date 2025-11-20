@@ -10,6 +10,7 @@
     "lint:fix": "eslint src --fix && pnpm format",
     "lint:strict": "eslint --max-warnings=0 src",
     "typecheck": "tsc --noEmit --incremental false",
+    "test:unit": "node ./tests/apple-apns.test.js",
     "postbuild": "next-sitemap --config next-sitemap.config.js"
   },
   "dependencies": {
