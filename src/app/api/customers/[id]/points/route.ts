@@ -81,6 +81,8 @@ export async function PUT(
           .select('*')
           .eq('customer_program_id', customerProgramId)
 
+          console.log('Found wallet registrations for customer program:', registrations);
+
         if (registrations && registrations.length > 0) {
           const { enqueueJob } = await import('@/lib/wallet-job-queue')
 

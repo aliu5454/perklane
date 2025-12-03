@@ -13,7 +13,7 @@
   "crons": [
     {
       "path": "/api/cron/wallet-jobs",
-      "schedule": "*/5 * * * *"
+      "schedule": "*/1 * * * *"
     }
   ]
 }
