@@ -79,22 +79,11 @@ export async function PUT(
         .from('pass_customers')
         .select('*')
         .eq('customer_program_id', customerProgramId)
-      
 
       if (registrationsError) {
         console.warn('Unable to fetch wallet registrations; continuing without wallet sync', registrationsError)
       } else {
-        console.log('Found wallet registrations for customer program:', registrations)
 
-        // Get all entries of pass_customers from db and print for debugging
-        const { data: allPassCustomers, error: allPassCustomersError } = await supabase
-          .from('pass_customers')
-          .select('*');
-
-        if (allPassCustomersError) {
-          console.warn('Unable to fetch all pass_customers for debugging', allPassCustomersError);
-        }
-        console.log('All pass_customers entries:', allPassCustomers);
         if (registrations && registrations.length > 0) {
           const { enqueueJob } = await import('@/lib/wallet-job-queue')
           const newPoints = parseInt(data?.new_points?.toString() || '0', 10) || 0
