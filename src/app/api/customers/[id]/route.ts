@@ -19,7 +19,7 @@ export async function GET(
     // Get the customer's points in the specified program
     const { data, error } = await supabase
       .from('customer_programs')
-      .select('points, tier')
+      .select('id, points, tier')
       .eq('customer_id', customerId)
       .eq('program_id', programId)
       .maybeSingle(); // Use maybeSingle instead of single to handle when no record exists
@@ -31,6 +31,7 @@ export async function GET(
     
     return NextResponse.json({
       success: true,
+      customerProgramId: data?.id || null,
       points: data?.points || 0,
       tier: data?.tier || 'standard'
     });
