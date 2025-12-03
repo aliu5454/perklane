@@ -71,25 +71,26 @@ export async function PUT(
       return NextResponse.json({ success: false, error: 'Failed to update points' }, { status: 500 });
     }
     
-    // After successful points update, attempt to push updates to linked wallet objects
-    // We do this in a best-effort manner; failures should not block the points update response
-    (async () => {
-      try {
-        // Fetch registrations in pass_customers for this customer program
-        const { data: registrations } = await supabase
-          .from('pass_customers')
-          .select('*')
-          .eq('customer_program_id', customerProgramId)
+    // After successful points update, attempt to push updates to linked wallet objects.
+    // Run before sending the response, but do not fail the request if this best-effort step has issues.
+    try {
+      // Fetch registrations in pass_customers for this customer program
+      const { data: registrations, error: registrationsError } = await supabase
+        .from('pass_customers')
+        .select('*')
+        .eq('customer_program_id', customerProgramId)
 
-          console.log('Found wallet registrations for customer program:', registrations);
+      if (registrationsError) {
+        console.warn('Unable to fetch wallet registrations; continuing without wallet sync', registrationsError)
+      } else {
+        console.log('Found wallet registrations for customer program:', registrations)
 
         if (registrations && registrations.length > 0) {
           const { enqueueJob } = await import('@/lib/wallet-job-queue')
+          const newPoints = parseInt(data?.new_points?.toString() || '0', 10) || 0
 
           for (const reg of registrations) {
             try {
-              const newPoints = parseInt(data?.new_points?.toString() || '0') || 0
-
               // Enqueue Google patch job
               if (reg.google_object_id) {
                 await enqueueJob({
@@ -110,10 +111,10 @@ export async function PUT(
             }
           }
         }
-      } catch (pushErr) {
-        console.error('Wallet push updates error:', pushErr)
       }
-    })()
+    } catch (pushErr) {
+      console.warn('Wallet push updates error (response not blocked):', pushErr)
+    }
 
     return NextResponse.json({
       success: true,
