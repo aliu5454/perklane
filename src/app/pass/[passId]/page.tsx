@@ -82,6 +82,8 @@ export default function PassSelectionPage() {
     }
 
     // Redirect to Google Wallet save URL
+    // DEBUG: SetClipboard
+    navigator.clipboard.writeText(passInfo.pass_url).catch(err => console.warn('Clipboard write failed:', err))
     window.location.href = passInfo.pass_url
   }
 
@@ -152,11 +154,18 @@ export default function PassSelectionPage() {
         
         if (response.ok) {
           const data = await response.json()
+          console.log('Fetched customer points data:', data);
           setCustomerPoints(data.points || 0)
+          // Store the actual customer_programs.id (not customerId) for wallet registration
+          if (data.customerProgramId) {
+            ;(window as any).__customerProgramId = data.customerProgramId
+          }
         }
+      } else {
+        // Fallback: if no program_id, use customerId
+        ;(window as any).__customerProgramId = customerId
       }
-      // Store the customerProgramId globally so we can register wallet additions
-      ;(window as any).__customerProgramId = customerId
+      
       
       setCustomerVerified(true)
     } catch (err) {
