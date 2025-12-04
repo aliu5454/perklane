@@ -95,17 +95,17 @@ export async function POST(req: Request) {
     const timestamp = Date.now();
     const userHash = Buffer.from(session.user.email).toString('base64').substring(0, 8);
     
-    // For classes, create a stable ID based on content for better reusability
-    // This allows multiple users to share the same class if the content is identical
+    // Classes: force unique IDs per creation to avoid updating previous passes that share a class
     const contentHash = Buffer.from(JSON.stringify({
       title: passData.title || 'default',
       type: passType,
       brandColor: passData.brandColor,
       logo: passData.logo
-    })).toString('base64').substring(0, 12).replace(/[^a-zA-Z0-9]/g, '');
-    
-    const classId = `${process.env.GOOGLE_WALLET_ISSUER_ID}.${passType}_class_${contentHash}`;
-    // For objects, always create unique per-user instances to prevent conflicts
+    })).toString('base64').substring(0, 8).replace(/[^a-zA-Z0-9]/g, '');
+    const uniqueSuffix = Math.random().toString(36).substring(2, 6); // keep IDs short and unique
+    const classId = `${process.env.GOOGLE_WALLET_ISSUER_ID}.${passType}_class_${contentHash}_${uniqueSuffix}`;
+
+    // Objects: always unique per-user
     const objectId = `${process.env.GOOGLE_WALLET_ISSUER_ID}.${passType}_object_${userHash}_${timestamp}`;
 
     console.log(`Starting Google Wallet workflow for ${passType}:`)
@@ -379,6 +379,53 @@ async function createOrGetClass(walletClient: any, passType: string, classId: st
       }
       console.log('✅ Class already exists:', classId)
       classExists = true
+
+      // Refresh existing class so new logo/title/background changes apply to future objects
+      const updateMask = Object.keys(classPayload || {})
+        .filter(key => !['id', 'reviewStatus'].includes(key) && classPayload[key] !== undefined)
+        .join(',');
+
+      if (updateMask) {
+        try {
+          switch (passType) {
+            case 'loyalty':
+              await walletClient.loyaltyclass.patch({
+                resourceId: classId,
+                updateMask,
+                requestBody: classPayload
+              })
+              break
+            case 'gift-card':
+              await walletClient.giftcardclass.patch({
+                resourceId: classId,
+                updateMask,
+                requestBody: classPayload
+              })
+              break
+            case 'offer':
+              await walletClient.offerclass.patch({
+                resourceId: classId,
+                updateMask,
+                requestBody: classPayload
+              })
+              break
+            case 'generic':
+              await walletClient.genericclass.patch({
+                resourceId: classId,
+                updateMask,
+                requestBody: classPayload
+              })
+              break
+          }
+          console.log('ƒo. Existing class refreshed with latest branding:', { classId, updateMask })
+        } catch (patchError: any) {
+          console.warn('ƒ?O Class refresh failed (continuing with existing class):', {
+            status: patchError.response?.status,
+            message: patchError.response?.data?.error?.message || patchError.message,
+            updateMask
+          })
+        }
+      }
     } catch (getError: any) {
       if (getError.response?.status === 404) {
         // Class doesn't exist, create it
@@ -749,7 +796,7 @@ function createLoyaltyClass(classId: string, passData: any, smartTapConfig?: any
 
   const classPayload: any = {
     id: classId,
-    issuerName: 'Perklane',
+    issuerName: passData.title || passData.programName,
     programName: passData.programName || passData.title,
     reviewStatus: 'UNDER_REVIEW',
     programLogo: logoUrl ? {
@@ -967,7 +1014,7 @@ function createGiftCardClass(classId: string, passData: any, smartTapConfig?: an
 
   const classPayload: any = {
     id: classId,
-    issuerName: 'Perklane',
+    issuerName: passData.title || passData.programName,
     merchantName: passData.title,
     reviewStatus: 'UNDER_REVIEW',
     merchantLogo: logoUrl ? {
@@ -1131,7 +1178,7 @@ function createOfferClass(classId: string, passData: any, smartTapConfig?: any) 
 
   const classPayload: any = {
     id: classId,
-    issuerName: 'Perklane',
+    issuerName: passData.title || passData.programName,
     title: passData.title,
     provider: passData.title,
     reviewStatus: 'UNDER_REVIEW',
@@ -1313,7 +1360,7 @@ function createGenericClass(classId: string, passData: any) {
 
   return {
     id: classId,
-    issuerName: 'Perklane',
+    issuerName: passData.title || passData.programName,
     reviewStatus: 'UNDER_REVIEW',
     logo: logoUrl ? {
       sourceUri: {
