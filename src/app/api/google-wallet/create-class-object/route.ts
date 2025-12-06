@@ -962,14 +962,12 @@ function createLoyaltyObject(objectId: string, classId: string, passData: any) {
     textModulesData: textModules
   };
 
-  // Add barcode if provided
-  if (passData.barcodeValue) {
-    loyaltyObject.barcode = {
-      type: passData.barcodeType || 'QR_CODE',
-      value: passData.barcodeValue,
-      alternateText: passData.barcodeAltText || passData.title
-    };
-  }
+  // Always include a barcode so the pass renders the QR view (fallback to objectId)
+  loyaltyObject.barcode = {
+    type: passData.barcodeType || 'QR_CODE',
+    value: passData.barcodeValue || objectId,
+    alternateText: passData.barcodeAltText || passData.title || objectId.split('.').pop() || objectId
+  };
 
   // Add validity period if provided
   if (passData.expirationDate || passData.membershipExpiry) {
@@ -1022,7 +1020,7 @@ function createGiftCardClass(classId: string, passData: any, smartTapConfig?: an
         uri: logoUrl
       }
     } : undefined,
-    hexBackgroundColor: passData.brandColor || '#000000'
+    hexBackgroundColor: passData.backgroundColor || '#000000'
   }
 
   // Add Smart Tap configuration if provided
