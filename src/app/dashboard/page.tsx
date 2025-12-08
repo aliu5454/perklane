@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import BGTexture from "@/components/layout/BGTexture";
@@ -70,20 +70,6 @@ export default function Dashboard() {
     }
   }, [session, status, router])
 
-  // Track dashboard view when component mounts
-  useEffect(() => {
-    if (session && passes.length > 0) {
-      // Track view for each pass on dashboard load
-      passes.forEach(pass => {
-        if (pass && pass.id) {
-          AnalyticsTracker.trackView(pass.id.toString()).catch(console.warn)
-        } else {
-          console.warn('Dashboard: Skipping analytics tracking for pass with missing ID', { pass })
-        }
-      })
-    }
-  }, [session, passes])
-
   const fetchPasses = async () => {
     try {
       setError(null)
@@ -141,8 +127,6 @@ export default function Dashboard() {
       isOpen: true,
       pass
     })
-    // Track QR code view
-    AnalyticsTracker.trackView(pass.id.toString()).catch(console.warn)
   }
 
   const confirmDeletePass = async () => {

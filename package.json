@@ -24,11 +24,11 @@
     "googleapis": "^159.0.0",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.544.0",
-    "next": "^15.4.3",
+    "next": "16.0.7",
     "next-auth": "^4.24.11",
     "passkit-generator": "^3.4.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
+    "react": "19.2.1",
+    "react-dom": "19.2.1",
     "react-phone-input-2": "^2.15.1",
     "react-verification-input": "^4.2.2",
     "recharts": "^3.2.0",
@@ -41,12 +41,12 @@
     "@tailwindcss/forms": "^0.5.10",
     "@tailwindcss/postcss": "^4.1.11",
     "@types/node": "24.3.1",
-    "@types/react": "^19.1.8",
+    "@types/react": "19.2.7",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
     "autoprefixer": "^10.4.20",
     "eslint": "^8.57.1",
-    "eslint-config-next": "^14.2.23",
+    "eslint-config-next": "16.0.7",
     "eslint-plugin-simple-import-sort": "^7.0.0",
     "eslint-plugin-unused-imports": "^2.0.0",
     "lint-staged": "^12.5.0",
@@ -60,5 +60,8 @@
       "eslint --max-warnings=0"
     ],
     "**/*.{json,css,scss,md,webmanifest}": []
+  },
+  "overrides": {
+    "@types/react": "19.2.7"
   }
 }

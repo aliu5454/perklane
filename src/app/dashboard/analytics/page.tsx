@@ -19,18 +19,14 @@ import {
   Filter,
   ChevronDown,
   Eye,
-  Smartphone,
   Clock,
-  MapPin,
   RefreshCw,
   UserCheck,
-  Mail,
-  Phone,
   X,
-  ExternalLink,
   Gift,
   Search,
   SortAsc,
+  Smartphone,
   Loader2
 } from 'lucide-react';
 import {
@@ -65,26 +61,14 @@ interface Pass {
 
 interface Customer {
   id: string;
+  customerId?: string;
   name: string;
-  email: string;
   phone?: string;
   dateAdded: string;
   status: 'Active' | 'Expired' | 'Revoked';
   points?: number;
-  punchCount?: number;
-  deviceInfo?: {
-    device: string;
-    os: string;
-    walletApp: string;
-  };
-  location?: {
-    city: string;
-    country: string;
-  };
+  tier?: string;
   lastActivity?: string;
-  totalSpent?: number;
-  visits?: number;
-  preferences?: string[];
 }
 
 interface AnalyticsData {
@@ -214,7 +198,9 @@ function AnalyticsContent() {
       const searchLower = searchTerm.toLowerCase().trim()
       filtered = filtered.filter(customer => 
         customer.name.toLowerCase().includes(searchLower) ||
-        customer.email.toLowerCase().includes(searchLower)
+        (customer.customerId && customer.customerId.toLowerCase().includes(searchLower)) ||
+        (customer.phone && customer.phone.toLowerCase().includes(searchLower)) ||
+        customer.id.toLowerCase().includes(searchLower)
       )
     }
 
@@ -797,7 +783,7 @@ function AnalyticsContent() {
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <input
                           type="text"
-                          placeholder="Search customers by name or email..."
+                          placeholder="Search customers by name or ID..."
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
                           className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
@@ -892,11 +878,12 @@ function AnalyticsContent() {
                     <table className="w-full">
                       <thead>
                         <tr className="border-b border-gray-200">
-                          <th className="text-left text-sm font-medium text-gray-600 pb-3">Customer Name</th>
-                          <th className="text-left text-sm font-medium text-gray-600 pb-3">Email</th>
+                          <th className="text-left text-sm font-medium text-gray-600 pb-3">Customer</th>
+                          <th className="text-left text-sm font-medium text-gray-600 pb-3">Phone</th>
                           <th className="text-left text-sm font-medium text-gray-600 pb-3">Date Added</th>
                           <th className="text-left text-sm font-medium text-gray-600 pb-3">Status</th>
-                          <th className="text-left text-sm font-medium text-gray-600 pb-3">Points/Punches</th>
+                          <th className="text-left text-sm font-medium text-gray-600 pb-3">Points</th>
+                          <th className="text-left text-sm font-medium text-gray-600 pb-3">Tier</th>
                           <th className="text-left text-sm font-medium text-gray-600 pb-3">Actions</th>
                         </tr>
                       </thead>
@@ -908,14 +895,16 @@ function AnalyticsContent() {
                                 <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-sm font-medium text-gray-600">
                                   {customer.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                                 </div>
-                                <span className="font-medium text-gray-900">{customer.name}</span>
+                                <div className="flex flex-col">
+                                  <span className="font-medium text-gray-900">{customer.name}</span>
+                                  {customer.customerId && (
+                                    <span className="text-xs text-gray-500">ID: {customer.customerId}</span>
+                                  )}
+                                </div>
                               </div>
                             </td>
-                            <td className="py-4">
-                              <div className="flex items-center gap-2 text-gray-700">
-                                <Mail className="w-4 h-4 text-gray-400" />
-                                <span className="text-sm">{customer.email}</span>
-                              </div>
+                            <td className="py-4 text-sm text-gray-700">
+                              {customer.phone || '—'}
                             </td>
                             <td className="py-4 text-gray-700 text-sm">
                               {new Date(customer.dateAdded).toLocaleDateString('en-US', {
@@ -937,13 +926,10 @@ function AnalyticsContent() {
                                     <span className="text-gray-500">pts</span>
                                   </div>
                                 )}
-                                {customer.punchCount !== undefined && (
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-medium">{customer.punchCount}/10</span>
-                                    <span className="text-gray-500">punches</span>
-                                  </div>
-                                )}
                               </div>
+                            </td>
+                            <td className="py-4 text-sm text-gray-700">
+                              {customer.tier || '—'}
                             </td>
                             <td className="py-4">
                               <button
@@ -1188,7 +1174,6 @@ function AnalyticsContent() {
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold text-gray-900">{selectedCustomer.name}</h3>
-                    <p className="text-gray-600">{selectedCustomer.email}</p>
                   </div>
                 </div>
                 <button
@@ -1221,136 +1206,41 @@ function AnalyticsContent() {
                 </div>
               </div>
 
-              {/* Loyalty Progress */}
-              {(selectedCustomer.points !== undefined || selectedCustomer.punchCount !== undefined) && (
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6">
-                  <h4 className="font-medium text-gray-900 mb-4 flex items-center gap-2">
-                    <Gift className="w-5 h-5" />
-                    Loyalty Progress
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {selectedCustomer.points !== undefined && (
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-blue-600">{selectedCustomer.points}</div>
-                        <div className="text-sm text-gray-600">Reward Points</div>
-                      </div>
-                    )}
-                    {selectedCustomer.punchCount !== undefined && (
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-purple-600">{selectedCustomer.punchCount}/10</div>
-                        <div className="text-sm text-gray-600">Punch Card</div>
-                        <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                          <div
-                            className="bg-purple-600 h-2 rounded-full transition-all"
-                            style={{ width: `${(selectedCustomer.punchCount / 10) * 100}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Contact & Device Info */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
-                    <Mail className="w-4 h-4" />
-                    Contact Information
-                  </h4>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Mail className="w-3 h-3" />
-                      <span>{selectedCustomer.email}</span>
-                    </div>
-                    {selectedCustomer.phone && (
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Phone className="w-3 h-3" />
-                        <span>{selectedCustomer.phone}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {selectedCustomer.deviceInfo && (
-                  <div className="bg-gray-50 rounded-xl p-4">
-                    <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
-                      <Smartphone className="w-4 h-4" />
-                      Device Information
-                    </h4>
-                    <div className="space-y-1 text-sm text-gray-600">
-                      <p><strong>Device:</strong> {selectedCustomer.deviceInfo.device}</p>
-                      <p><strong>OS:</strong> {selectedCustomer.deviceInfo.os}</p>
-                      <p><strong>Wallet:</strong> {selectedCustomer.deviceInfo.walletApp}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Activity & Analytics */}
+              {/* Customer Snapshot */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {selectedCustomer.totalSpent !== undefined && (
-                  <div className="bg-green-50 rounded-xl p-4 text-center">
-                    <div className="text-xl font-bold text-green-600">${selectedCustomer.totalSpent}</div>
-                    <div className="text-sm text-gray-600">Total Spent</div>
+                <div className="bg-gray-50 rounded-xl p-4 text-center">
+                  <div className="text-xl font-bold text-blue-600">{selectedCustomer.points ?? 0}</div>
+                  <div className="text-sm text-gray-600">Points</div>
+                </div>
+                <div className="bg-gray-50 rounded-xl p-4 text-center">
+                  <div className="text-xl font-bold text-gray-900">{selectedCustomer.tier || 'bronze'}</div>
+                  <div className="text-sm text-gray-600">Tier</div>
+                </div>
+                <div className="bg-gray-50 rounded-xl p-4 text-center">
+                  <div className="text-xl font-bold text-gray-900">
+                    {selectedCustomer.phone || 'Phone not provided'}
                   </div>
-                )}
-                {selectedCustomer.visits !== undefined && (
-                  <div className="bg-orange-50 rounded-xl p-4 text-center">
-                    <div className="text-xl font-bold text-orange-600">{selectedCustomer.visits}</div>
-                    <div className="text-sm text-gray-600">Store Visits</div>
-                  </div>
-                )}
-                <div className="bg-blue-50 rounded-xl p-4 text-center">
-                  <div className="text-xl font-bold text-blue-600">
-                    {selectedCustomer.lastActivity 
-                      ? Math.ceil((Date.now() - new Date(selectedCustomer.lastActivity).getTime()) / (1000 * 60 * 60 * 24))
-                      : 0}d
-                  </div>
-                  <div className="text-sm text-gray-600">Days Since Last Activity</div>
+                  <div className="text-sm text-gray-600">Phone</div>
                 </div>
               </div>
 
-              {/* Location & Preferences */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {selectedCustomer.location && (
-                  <div className="bg-gray-50 rounded-xl p-4">
-                    <h4 className="font-medium text-gray-900 mb-2 flex items-center gap-2">
-                      <MapPin className="w-4 h-4" />
-                      Location
-                    </h4>
-                    <p className="text-sm text-gray-600">
-                      {selectedCustomer.location.city}, {selectedCustomer.location.country}
-                    </p>
+                <div className="bg-gray-50 rounded-xl p-4 text-center">
+                  <div className="text-xl font-bold text-gray-900">
+                    {selectedCustomer.lastActivity
+                      ? new Date(selectedCustomer.lastActivity).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                      : '—'}
                   </div>
-                )}
-                {selectedCustomer.preferences && selectedCustomer.preferences.length > 0 && (
-                  <div className="bg-gray-50 rounded-xl p-4">
-                    <h4 className="font-medium text-gray-900 mb-2">Preferences</h4>
-                    <div className="flex flex-wrap gap-1">
-                      {selectedCustomer.preferences.map((pref, index) => (
-                        <span
-                          key={index}
-                          className="px-2 py-1 bg-white text-xs text-gray-600 rounded-full border"
-                        >
-                          {pref}
-                        </span>
-                      ))}
-                    </div>
+                  <div className="text-sm text-gray-600">Last Activity</div>
+                </div>
+                <div className="bg-gray-50 rounded-xl p-4 text-center">
+                  <div className="text-xl font-bold text-gray-900">
+                    {selectedCustomer.dateAdded
+                      ? new Date(selectedCustomer.dateAdded).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                      : '—'}
                   </div>
-                )}
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-3 pt-4 border-t border-gray-200">
-                <button className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                  <Mail className="w-4 h-4" />
-                  Send Message
-                </button>
-                <button className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
-                  <ExternalLink className="w-4 h-4" />
-                  View Full Profile
-                </button>
+                  <div className="text-sm text-gray-600">Joined</div>
+                </div>
               </div>
             </div>
           </div>
