@@ -41,11 +41,6 @@ export default function QRModal({
 
   const handleDownloadQR = async () => {
     try {
-      // Track QR download - validate passId first
-      if (passId != null) {
-        await AnalyticsTracker.trackDownload(passId.toString())
-      }
-      
       // Download the QR code image
       const link = document.createElement('a')
       link.href = qrCodeUrl
@@ -61,10 +56,6 @@ export default function QRModal({
   const handleDownloadCard = async () => {
     setIsDownloading(true)
     try {
-      // Track card download - validate passId first
-      if (passId != null) {
-        await AnalyticsTracker.trackDownload(passId.toString())
-      }
       
       const canvas = canvasRef.current
       if (!canvas) return

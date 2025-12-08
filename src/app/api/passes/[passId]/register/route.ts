@@ -14,7 +14,15 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const session = await getServerSession(authOptions)
 
     // Expect the customerProgramId and wallet type in body
-    const { customerProgramId, wallet, deviceToken } = await request.json()
+    const body = await request.json().catch(() => null)
+    if (!body) {
+      return NextResponse.json(
+        { success: false, error: 'Request body must be valid JSON' },
+        { status: 400 }
+      )
+    }
+
+    const { customerProgramId, wallet, deviceToken } = body
 
     if (!passId || !customerProgramId || !wallet) {
       return NextResponse.json({ success: false, error: 'passId, customerProgramId and wallet are required' }, { status: 400 })

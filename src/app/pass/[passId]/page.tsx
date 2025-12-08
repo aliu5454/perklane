@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import CustomerVerification from '@/components/CustomerVerification'
+import { AnalyticsTracker } from '@/lib/analytics-tracker'
 
 /**
  * Wallet Selection Page
@@ -42,12 +43,22 @@ export default function PassSelectionPage() {
   const [showVerification, setShowVerification] = useState(false)
   const [customerVerified, setCustomerVerified] = useState(false)
   const [customerPoints, setCustomerPoints] = useState<number | null>(null)
+  const hasTrackedScan = useRef(false)
 
   useEffect(() => {
     if (passId) {
       fetchPassInfo()
     }
   }, [passId])
+
+  // Track a scan when this page is reached (QR or shared link)
+  useEffect(() => {
+    if (!passInfo || hasTrackedScan.current) return
+    hasTrackedScan.current = true
+    AnalyticsTracker.trackView(String(passInfo.id)).catch(err => {
+      console.warn('Failed to track pass view:', err)
+    })
+  }, [passInfo])
 
   const fetchPassInfo = async () => {
     try {
@@ -156,6 +167,13 @@ export default function PassSelectionPage() {
           const data = await response.json()
           console.log('Fetched customer points data:', data);
           setCustomerPoints(data.points || 0)
+          // Set pass as downloaded
+          AnalyticsTracker.trackDownload(String(passInfo.id), {
+            email: data.phone,
+            name: data.name
+          }).catch(err => {
+            console.warn('Failed to track pass download:', err)
+          })
           // Store the actual customer_programs.id (not customerId) for wallet registration
           if (data.customerProgramId) {
             ;(window as any).__customerProgramId = data.customerProgramId

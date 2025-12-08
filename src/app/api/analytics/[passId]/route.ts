@@ -53,13 +53,27 @@ export async function GET(
       .eq('pass_id', passId)
       .gte('created_at', startDate.toISOString())
       .order('created_at', { ascending: false })
-
-    // Get customers data
+      
+    // Get customers data from the same source used by Points/Customer management
     const { data: customers, error: customersError } = await supabase
-      .from('pass_customers')  
-      .select('*')
-      .eq('pass_id', passId)
-      .order('last_interaction', { ascending: false })
+      .from('customer_programs')
+      .select(`
+        id,
+        customer_id,
+        points,
+        tier,
+        joined_at,
+        last_activity,
+        program_id,
+        business_email,
+        customers (
+          full_name,
+          phone_number
+        )
+      `)
+      .eq('program_id', passId)
+      .order('last_activity', { ascending: false })
+
 
     // If we don't have analytics tables yet (they might not be created), use basic pass data
     if (analyticsError && customersError) {
@@ -70,8 +84,8 @@ export async function GET(
       const daysSinceCreation = Math.floor((now.getTime() - createdDate.getTime()) / (24 * 60 * 60 * 1000))
       
       const basicAnalyticsData = {
-        totalViews: Math.max(1, daysSinceCreation * 2),
-        totalDownloads: Math.max(1, Math.floor(daysSinceCreation * 0.3)),
+        totalViews: Math.max(0, daysSinceCreation * 2),
+        totalDownloads: Math.max(0, Math.floor(daysSinceCreation * 0.3)),
         conversionRate: 15,
         activePasses: 1,
         
@@ -133,14 +147,13 @@ export async function GET(
         }
       })
     }
-
     // Process analytics events if they exist
     const events = analyticsEvents || []
     const customerData = customers || []
     
     // Calculate metrics from events
     const totalViews = events.filter(e => e.event_type === 'view').length
-    const totalDownloads = events.filter(e => e.event_type === 'add_to_wallet').length
+    const totalDownloads = events.filter(e => e.event_type === 'download').length
     const totalScans = events.filter(e => e.event_type === 'scan').length
     
     // Device breakdown
@@ -181,64 +194,63 @@ export async function GET(
       .slice(-14) // Last 14 days
 
     // Convert customers data to frontend format
-    const formattedCustomers = customerData.map(customer => ({
-      id: customer.id,
-      name: customer.name || 'Anonymous',
-      email: customer.email || 'unknown@example.com',
-      phone: customer.metadata?.phone,
-      dateAdded: customer.first_interaction?.split('T')[0] || customer.created_at.split('T')[0],
-      status: customer.status === 'active' ? 'Active' as const : 
-              customer.status === 'inactive' ? 'Expired' as const : 'Revoked' as const,
-      points: customer.points || 0,
-      punchCount: customer.metadata?.punch_count,
-      deviceInfo: {
-        device: customer.device_info?.platform || 'Unknown',
-        os: customer.device_info?.os_version || 'Unknown',
-        walletApp: customer.device_info?.platform === 'iOS' ? 'Apple Wallet' : 'Google Wallet'
-      },
-      location: {
-        city: customer.location_info?.city || 'Unknown',
-        country: customer.location_info?.country || 'Unknown'
-      },
-      lastActivity: customer.last_interaction?.split('T')[0] || customer.updated_at.split('T')[0],
-      totalSpent: customer.metadata?.total_spent,
-      visits: customer.total_interactions || 1,
-      preferences: customer.metadata?.preferences || []
-    }))
+    const formattedCustomers = customerData.map((customerProgram) => {
+      const profile = (customerProgram as any).customers || {}
+      const lastInteraction =
+        customerProgram.last_activity ||
+        customerProgram.joined_at 
+
+      const status = (() => {
+        if (!lastInteraction) return 'Active' as const
+        const daysSinceLast =
+          (now.getTime() - new Date(lastInteraction).getTime()) /
+          (1000 * 60 * 60 * 24)
+        if (daysSinceLast > 90) return 'Revoked' as const
+        if (daysSinceLast > 30) return 'Expired' as const
+        return 'Active' as const
+      })()
+
+      return {
+        id: customerProgram.id,
+        customerId: customerProgram.customer_id,
+        name: (profile.full_name as string | null) || `Customer ${customerProgram.customer_id?.toString().slice(0, 8) || ''}`.trim() || 'Customer',
+        phone: profile.phone_number as string | undefined,
+        dateAdded:
+          (
+            customerProgram.joined_at ||
+            new Date().toISOString()
+          ).split('T')[0],
+        status,
+        points: customerProgram.points ?? 0,
+        tier: customerProgram.tier,
+        lastActivity: lastInteraction
+          ? lastInteraction.split('T')[0]
+          : undefined
+      }
+    })
 
     const analyticsData = {
-      totalViews: Math.max(totalViews, 1),
-      totalDownloads: Math.max(totalDownloads, 1), 
-      conversionRate: totalViews > 0 ? Math.round((totalDownloads / totalViews) * 100) : 15,
-      activePasses: customerData.filter(c => c.status === 'active').length || 1,
+      totalViews: Math.max(totalViews, 0),
+      totalDownloads: Math.max(totalDownloads, 0), 
+      conversionRate: totalViews > 0 ? Math.round((totalDownloads / totalViews) * 100) : 0,
+      activePasses: formattedCustomers.filter(c => c.status === 'Active').length || 1,
       
-      popularDevices: popularDevices.length > 0 ? popularDevices : [{ device: 'Unknown', count: 1 }],
+      popularDevices: popularDevices.length > 0 ? popularDevices : [],
       
       viewsOverTime: viewsOverTimeArray.length > 0 ? viewsOverTimeArray : [{
         date: new Date().toISOString().split('T')[0],
-        views: 1,
-        downloads: 1
+        views: 0,
+        downloads: 0
       }],
       
       passPerformance: [{
         passId: passId,
         title: pass.title,
-        views: Math.max(totalViews, 1),
-        downloads: Math.max(totalDownloads, 1)
+        views: Math.max(totalViews, 0),
+        downloads: Math.max(totalDownloads, 0)
       }],
 
-      customers: formattedCustomers.length > 0 ? formattedCustomers : [{
-        id: `customer_${passId}_owner`,
-        name: session.user.name || 'Pass Owner',
-        email: session.user.email!,
-        dateAdded: pass.created_at.split('T')[0],
-        status: 'Active' as const,
-        points: 100,
-        deviceInfo: { device: 'Unknown', os: 'Unknown', walletApp: 'Unknown' },
-        location: { city: 'Unknown', country: 'Unknown' },
-        lastActivity: pass.updated_at.split('T')[0],
-        preferences: ['Email notifications']
-      }],
+      customers: formattedCustomers.length > 0 ? formattedCustomers : [],
       
       insights: {
         topPerformingDevice: popularDevices[0]?.device || 'Unknown',
@@ -246,7 +258,7 @@ export async function GET(
         averageTimeToDownload: '2.3 minutes',
         popularDayOfWeek: 'Tuesday', 
         conversionTrend: totalViews > 0 && totalDownloads/totalViews > 0.2 ? 'increasing' as const : 'stable' as const,
-        topLocation: customerData[0]?.location_info?.city || 'Unknown'
+        topLocation: 'Unknown'
       }
     }
 

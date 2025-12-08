@@ -6,6 +6,9 @@ const nextConfig = {
 
   reactStrictMode: true,
 
+  // Add empty turbopack config to explicitly use webpack
+  turbopack: {},
+
   images: {
     remotePatterns: [
       {

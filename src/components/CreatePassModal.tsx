@@ -713,21 +713,6 @@ export default function CreatePassModal({ isOpen, onClose, onSuccess, editPass }
             type: 'success'
           })
           
-          // Track pass creation analytics if we have a pass ID
-          if (result.passId) {
-            try {
-              await AnalyticsTracker.trackEvent({
-                passId: result.passId.toString(),
-                eventType: 'view', // Track initial creation as a view event
-                metadata: {
-                  created_via: 'modal',
-                  pass_type: selectedType
-                }
-              })
-            } catch (error) {
-              console.warn('Failed to track pass creation:', error)
-            }
-          }
           
           // Trigger immediate refresh of passes list
           if (onSuccess) {
@@ -2158,12 +2143,6 @@ export default function CreatePassModal({ isOpen, onClose, onSuccess, editPass }
                         href={successData.qrCodeUrl}
                         download="pass-qr-code.png"
                         className="px-4 py-2 bg-green-600 text-white rounded-4xl font-medium hover:bg-green-700 transition-colors flex items-center gap-2"
-                        onClick={() => {
-                          // Track QR code download
-                          if (successData.passId) {
-                            AnalyticsTracker.trackDownload(successData.passId.toString()).catch(console.warn)
-                          }
-                        }}
                       >
                         <Download size={16} />
                         Download QR Code
@@ -2244,12 +2223,6 @@ export default function CreatePassModal({ isOpen, onClose, onSuccess, editPass }
                           href={successData.qrCodeUrl}
                           download="pass-qr-code.png"
                           className="inline-flex items-center gap-2 text-xs bg-gray-900 text-white px-3 py-2 rounded-lg hover:bg-gray-800 transition-colors"
-                          onClick={() => {
-                            // Track QR code download
-                            if (successData.passId) {
-                              AnalyticsTracker.trackDownload(successData.passId.toString()).catch(console.warn)
-                            }
-                          }}
                         >
                           <Download size={12} />
                           Download QR Code
